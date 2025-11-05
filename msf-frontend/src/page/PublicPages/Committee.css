@@ -1,0 +1,109 @@
+/* Keep your existing styles */
+.committee-container {
+  font-family: 'Arial', sans-serif;
+  text-align: center;
+  padding-top: 10px;
+  padding-bottom: 80px;
+  margin-top: 90px;
+}
+
+.committee-header {
+  padding-bottom: 10px;
+}
+
+.committee-header h2 {
+  font-size: 2.5rem;
+  margin: 0;
+  font: bold;
+  color: #006400;
+}
+
+.committee-header p {
+  font-size: 1rem;
+  color: #4d774d;
+  margin-top: 10px;
+}
+
+.committee-group {
+  margin-top: 30px;
+}
+
+.group-title {
+  font-size: 2.6rem;
+  margin-bottom: 10px;
+  color: #128c28;
+}
+
+.committee-members {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 40px;
+  margin-top: 1%;
+}
+
+/* Member Card */
+.member {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  width: 220px;
+  box-shadow: 0 4px 12px rgba(0, 100, 0, 0.15);
+  transition: transform 0.3s ease;
+  text-align: center;
+}
+
+.member:hover {
+  transform: translateY(-8px);
+}
+
+.member img {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 3px solid #006400;
+  margin-bottom: 15px;
+}
+
+.member h3 {
+  margin: 10px 0 5px;
+  font-size: 1.2rem;
+}
+
+.member p {
+  margin: 5px 0;
+  font-weight: bold;
+  color: #2e7d32;
+}
+
+.member span {
+  font-size: 0.9rem;
+  color: #333;
+}
+
+/* Swiper specific styles */
+.swiper-container {
+  width: 100%;
+  padding-bottom: 40px;
+}
+
+.swiper-slide {
+  display: flex;
+  justify-content: center;
+  width: auto !important;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .committee-members {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .committee-container {
+    margin-top: 0;
+  }
+}

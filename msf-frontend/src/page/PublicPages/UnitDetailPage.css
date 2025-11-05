@@ -1,0 +1,41 @@
+.separator-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 32px; /* Add margin below the separator */
+}
+
+.separator {
+  position: relative;
+  width: 100%;
+  height: 1px;
+  background-color: #e5e7eb;
+}
+
+.separator-text {
+  position: absolute;
+  top: -8px;  /* Adjust to align the text vertically */
+  left: 50%;
+  transform: translateX(-50%);
+  font-weight: bold;
+  font-size: 18px;  /* Title font size */
+  color: #333;  /* Title text color */
+  padding: 0 20px; /* Padding around the title */
+}
+
+.separator:before,
+.separator:after {
+  content: "";
+  display: inline-block;
+  width: 45%;  /* Line before the title */
+  height: 1px;
+  background-color: #e5e7eb;
+}
+
+.separator:before {
+  margin-right: 5%;  /* Space between left line and title */
+}
+
+.separator:after {
+  margin-left: 5%;  /* Space between right line and title */
+}
