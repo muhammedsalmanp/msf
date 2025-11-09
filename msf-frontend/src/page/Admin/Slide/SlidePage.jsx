@@ -3,8 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import { FaPlus, FaTrash } from 'react-icons/fa';
 import { useDispatch } from 'react-redux';
 import axios from '../../../api/axiosInstance';
-import { showNotification } from '../../../store/slices/notificationSlice';
-import { setLoading } from '../../../store/slices/loadingSlice';
+import { showNotification } from '../../../Store/slices/notificationSlice';
+import { setLoading } from '../../../Store/slices/loadingSlice';
 import CropperModal from '../../../components/ImageCropper';
 
 const SlidePage = () => {

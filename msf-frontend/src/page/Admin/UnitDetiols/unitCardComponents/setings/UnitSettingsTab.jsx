@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useDispatch } from 'react-redux';
-import { showNotification } from '../../../../../store/slices/notificationSlice';
-import { setLoading } from '../../../../../store/slices/loadingSlice';
+import { showNotification } from '../../../../../Store/slices/notificationSlice';
+import { setLoading } from '../../../../../Store/slices/loadingSlice';
 import axios from "../../../../../api/axiosInstance"; // <-- IMPORT AXIOS
 import { Edit3, Save, X, KeySquare, Shield, RefreshCcw } from 'lucide-react';
 

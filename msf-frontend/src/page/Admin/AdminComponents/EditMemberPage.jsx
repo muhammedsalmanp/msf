@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from '../../../api/axiosInstance';
 import { useNavigate, useParams } from 'react-router-dom'; // Import useParams
 import { useDispatch } from 'react-redux';
-import { showNotification } from '../../../store/slices/notificationSlice';
-import { setLoading } from '../../../store/slices/loadingSlice';
+import { showNotification } from '../../../Store/slices/notificationSlice';
+import { setLoading } from '../../../Store/slices/loadingSlice';
 import { FaCamera } from 'react-icons/fa';
 import CropperModal from '../../../components/ImageCropper';
 

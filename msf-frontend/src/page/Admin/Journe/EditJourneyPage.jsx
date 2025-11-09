@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from '../../../api/axiosInstance';
 import { useDispatch } from 'react-redux';
-import { setLoading } from '../../../store/slices/loadingSlice';  // Import the setLoading action
-import { showNotification } from '../../../store/slices/notificationSlice';
+import { setLoading } from '../../../Store/slices/loadingSlice';  // Import the setLoading action
+import { showNotification } from '../../../Store/slices/notificationSlice';
 
 const EditJourneyPage = () => {
   const navigate = useNavigate();

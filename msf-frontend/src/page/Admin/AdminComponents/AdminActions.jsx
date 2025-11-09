@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from '../../../api/axiosInstance';
 import { useDispatch } from 'react-redux';
-import { showNotification } from '../../../store/slices/notificationSlice';
-import { setLoading } from '../../../store/slices/loadingSlice';
+import { showNotification } from '../../../Store/slices/notificationSlice';
+import { setLoading } from '../../../Store/slices/loadingSlice';
 import {
     FaMapMarkedAlt,
     FaTools,
