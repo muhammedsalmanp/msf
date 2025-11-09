@@ -1,19 +1,20 @@
 import express from 'express';
 import { getSlides } from '../controllers/CO/slideController.js';
-import { getMainCommittee, getHarithaCommittee } from '../controllers/CO/committeecontrollers.js';
 import { getJourney } from '../controllers/CO/journeyController.js';
 import { getUnits, getUnitDetails, getUnitCommittee } from '../controllers/CO/unitController.js';
 import { getUserProfile, EditProfileController, changePasswordController } from '../controllers/CO/userController.js';
 import { addProgramToUnit, updateProgramToUnit, deleteProgramfromUnit } from '../controllers/CO/programController.js'
 import { addProgram, getProgram, deleteProgram } from '../controllers/CO/programController.js'
 import {
+    getMainCommittee, 
+    getHarithaCommittee, 
     getCommitteeUsersByUnit,
     deleteUserFromCommittee,
     updateCommitteeAndUserRoles,
     addUserToCommittee,
     updateUserInCommittee,
     changeUserRoleInCommittee,
-} from '../controllers/CO/committeecontrollers.js';
+} from '../controllers/CO/committeeControllers.js';
 import { getInChargeInfo } from '../controllers/userController/getInChargeInfo.js';
 import { verifyAccessToken } from '../middleware/verification.js';
 import upload from '../config/multerConfig.js';
