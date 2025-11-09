@@ -9,12 +9,12 @@ import { useDispatch } from "react-redux";
 import imageCompression from 'browser-image-compression'; 
 
 // Local avatars
-import avthar1 from "src/assets/avthar-1.AVIF";
-import avthar2 from "src/assets/avthar-2.JPG";
-import avthar3 from "src/assets/avthar-3.JPG";
-import avthar4 from "src/assets/avthar-4.JPEG";
-import avthar5 from "src/assets/avthar-5.PNG";
-import avthar6 from "src/assets/avthar-6.JPEG";
+import avthar1 from "../../../../../assets/avthar";
+import avthar2 from "../../../../../assets/avthar-2.JPG";
+import avthar3 from "../../../../../assets/avthar-3.JPG";
+import avthar4 from "../../../../../assets/avthar-4.JPEG";
+import avthar5 from "../../../../../assets/avthar-5.PNG";
+import avthar6 from "../../../../../assets/avthar-6.JPEG";
 
 const AddUserModal = ({ unitId, committeeType, onClose, onSubmit }) => {
   const [profilePic, setProfilePic] = useState(null); // Preview URL
