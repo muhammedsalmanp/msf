@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { X, AlertTriangle } from "lucide-react";
 import axios from "../../../../api/axiosInstance";
-import { setLoading } from "../../../../store/slices/loadingSlice";
-import { showNotification } from "../../../../store/slices/notificationSlice";
+import { setLoading } from "../../../../Store/slices/loadingSlice";
+import { showNotification } from "../../../../Store/slices/notificationSlice";
 import { useDispatch } from "react-redux";
 
 const rolesList = [
