@@ -9,12 +9,12 @@ import { useDispatch } from "react-redux";
 import imageCompression from 'browser-image-compression'; 
 
 // Local avatars
-import avthar1 from "public/assets/avthar";
-import avthar2 from "public/assets/avthar-2.JPG";
-import avthar3 from "public/assets/avthar-3.JPG";
-import avthar4 from "public/assets/avthar-4.JPEG";
-import avthar5 from "public/assets/avthar-5.PNG";
-import avthar6 from "public/assets/avthar-6.JPEG";
+// import avthar1 from "public/assets/avthar";
+// import avthar2 from "public/assets/avthar-2.JPG";
+// import avthar3 from "public/assets/avthar-3.JPG";
+// import avthar4 from "public/assets/avthar-4.JPEG";
+// import avthar5 from "public/assets/avthar-5.PNG";
+// import avthar6 from "public/assets/avthar-6.JPEG";
 
 const AddUserModal = ({ unitId, committeeType, onClose, onSubmit }) => {
   const [profilePic, setProfilePic] = useState(null); // Preview URL
@@ -42,8 +42,15 @@ const AddUserModal = ({ unitId, committeeType, onClose, onSubmit }) => {
     "Member",
   ];
 
-  const avatars = [avthar1, avthar2, avthar3, avthar4, avthar5, avthar6];
-
+  // const avatars = [avthar1, avthar2, avthar3, avthar4, avthar5, avthar6];
+const avatars = [
+  "/assets/avthar-1.AVIF",
+  "/assets/avthar-2.JPG",
+  "/assets/avthar-3.JPG",
+  "/assets/avthar-4.JPEG",
+  "/assets/avthar-5.PNG",
+  "/assets/avthar-6.JPEG",
+];
   // File upload handler
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
