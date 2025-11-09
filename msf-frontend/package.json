@@ -12,11 +12,10 @@
   "dependencies": {
     "@reduxjs/toolkit": "^2.8.2",
     "aos": "^2.3.4",
-    "axios": "^1.11.0",
+    "axios": "^1.13.2",
     "browser-image-compression": "^2.0.2",
     "framer-motion": "^12.23.24",
     "install": "^0.13.0",
-    "localtunnel": "^1.8.3",
     "lucide-react": "^0.532.0",
     "prop-types": "^15.8.1",
     "react": "^18.0.0",
