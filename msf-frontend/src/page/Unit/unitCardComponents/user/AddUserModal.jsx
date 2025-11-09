@@ -9,7 +9,8 @@ import { useDispatch } from "react-redux";
 import imageCompression from 'browser-image-compression'; 
 
 // Local avatars
-import avthar1 from "../../../../assets/avthar-1.AVIF";
+// import avthar1 from "../../../../assets/avthar-1.AVIF";
+import avthar1 from "../../../../assets/avthar-2.JPG";
 import avthar2 from "../../../../assets/avthar-2.JPG";
 import avthar3 from "../../../../assets/avthar-3.JPG";
 import avthar4 from "../../../../assets/avthar-4.JPEG";
