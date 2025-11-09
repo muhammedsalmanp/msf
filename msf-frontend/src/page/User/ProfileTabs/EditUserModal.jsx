@@ -9,12 +9,12 @@ import { useDispatch } from "react-redux";
 import imageCompression from "browser-image-compression";
 
 // Local avatars (assuming paths are correct from this file's location)
-import avthar1 from "../../../assets/avthar-1.AVIF";
-import avthar2 from "../../../assets/avthar-2.JPG";
-import avthar3 from "../../../assets/avthar-3.JPG";
-import avthar4 from "../../../assets/avthar-4.JPEG";
-import avthar5 from "../../../assets/avthar-5.PNG";
-import avthar6 from "../../../assets/avthar-6.JPEG";
+// import avthar1 from "../../../assets/avthar-1.AVIF";
+// import avthar2 from "../../../assets/avthar-2.JPG";
+// import avthar3 from "../../../assets/avthar-3.JPG";
+// import avthar4 from "../../../assets/avthar-4.JPEG";
+// import avthar5 from "../../../assets/avthar-5.PNG";
+// import avthar6 from "../../../assets/avthar-6.JPEG";
 
 const EditUserModal = ({
   memberToEdit,
@@ -53,8 +53,15 @@ const EditUserModal = ({
     "Member",
   ];
 
-  const avatars = [avthar1, avthar2, avthar3, avthar4, avthar5, avthar6];
-
+  // const avatars = [avthar1, avthar2, avthar3, avthar4, avthar5, avthar6];
+  const avatars = [
+  "/assets/avthar-1.AVIF",
+  "/assets/avthar-2.JPG",
+  "/assets/avthar-3.JPG",
+  "/assets/avthar-4.JPEG",
+  "/assets/avthar-5.PNG",
+  "/assets/avthar-6.JPEG",
+];
   // Effect to populate form when member data is available
   useEffect(() => {
     if (memberToEdit) {
