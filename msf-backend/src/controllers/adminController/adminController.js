@@ -24,6 +24,7 @@ export const addUnit = async (req, res) => {
     res.status(500).json({ message: 'Server error while adding unit' });
   }
 };
+
 export const getunits = async (req, res) => {
   try {
     const units = await Unit.find().select('name');

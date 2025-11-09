@@ -1,33 +1,30 @@
 import express from 'express';
+import { getUnitProfile } from '../controllers/CO/unitController.js';
+import { addProgram, updateProgram, deleteProgram } from '../controllers/CO/programController.js';
+import { getCommitteeUsers, addUserToCommittee, updateUserInCommittee, changeUserRoleInCommittee, deleteUserFromCommittee } from "../controllers/CO/committeeControllers.js";
+import { updateUnitUsername, changeUnitPassword } from "../controllers/CO/unitController.js"
 import { verifyAccessToken } from '../middleware/verification.js';
 import upload from '../config/multerConfig.js';
-
-import { getUnitProfile } from '../controllers/unitCondroler/UnitCondroler.js';
-import { addProgramToUnitController,updateProgram,deleteProgram } from '../controllers/unitCondroler/ProgramCondroler.js';
-import {updateUnitUsername,changeUnitPassword} from "../controllers/unitCondroler/setingscondroler.js"
-
-import { addUserToCommittee, updateUserInCommittee, changeUserRoleInCommittee, deleteUserFromCommittee } from "../controllers/userController/Commetti.js";
-import { getCommitteeUsersByUnit  } from '../controllers/unitCondroler/profilecondroler.js';
-
-
-
 const router = express.Router();
 
-router.get("/profile",verifyAccessToken,getUnitProfile);
+//==============Profile===================
+router.get("/profile", verifyAccessToken, getUnitProfile);
+router.put('/username', verifyAccessToken, updateUnitUsername);
+router.put('/password', verifyAccessToken, changeUnitPassword);
 
-router.get("/committee/:committeeType",verifyAccessToken, getCommitteeUsersByUnit);
+//=============Program===================
+router.put('/programs/:programId', verifyAccessToken, upload.array('images', 10), updateProgram);
+router.post(`/programs`, verifyAccessToken, upload.array('images', 10), addProgram);
+router.delete('/programs/:programId', verifyAccessToken, deleteProgram);
 
-router.put('/programs/:programId',verifyAccessToken, upload.array('images', 10), updateProgram);
-router.post(`/programs`,verifyAccessToken, upload.array('images', 10), addProgramToUnitController);
-router.delete('/programs/:programId',verifyAccessToken, deleteProgram);
+//=============Committe====================
+router.get("/committee/:committeeType", verifyAccessToken, getCommitteeUsers);
+router.post("/add", verifyAccessToken, upload.single("profileImage"), addUserToCommittee);
+router.put("/update/:userId", verifyAccessToken, upload.single("profileImage"), updateUserInCommittee);
+router.put("/change-role/:userId", verifyAccessToken, changeUserRoleInCommittee);
+router.delete("/delete/:userId", verifyAccessToken, deleteUserFromCommittee);
 
-router.post("/add",verifyAccessToken, upload.single("profileImage"), addUserToCommittee);
-router.put("/update/:userId",verifyAccessToken, upload.single("profileImage"), updateUserInCommittee);
-router.put("/change-role/:userId",verifyAccessToken, changeUserRoleInCommittee);
-router.delete("/delete/:userId",verifyAccessToken, deleteUserFromCommittee);
 
-router.put('/username',verifyAccessToken,updateUnitUsername);
-router.put('/password',verifyAccessToken,changeUnitPassword);
 
 
 

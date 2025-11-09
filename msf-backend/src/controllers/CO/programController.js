@@ -13,9 +13,9 @@ const getGradeAndClassification = (score) => {
   } else if (score >= 50) {
     return { grade: 'C', classification: 'Average' };
   } else if (score >= 25) {
-    return { grade: 'D', classification: 'Average' }; 
+    return { grade: 'D', classification: 'Average' };
   } else {
-    return { grade: 'F', classification: 'Average' }; 
+    return { grade: 'F', classification: 'Average' };
   }
 };
 
@@ -25,9 +25,9 @@ export const updateAllUnitRanks = async () => {
 
     const sortedUnits = await Unit.find({}, '_id totalScore rank grade classification')
       .sort({ totalScore: -1 })
-      .lean(); 
+      .lean();
 
-    const operations = []; 
+    const operations = [];
 
     sortedUnits.forEach((unit, index) => {
       const newRank = index + 1;
@@ -65,6 +65,7 @@ export const updateAllUnitRanks = async () => {
   }
 };
 
+//==============incharg Controllers====================
 
 export const addProgramToUnit = async (req, res) => {
   try {
@@ -107,7 +108,7 @@ export const addProgramToUnit = async (req, res) => {
 
     unit.programs.push(newProgramData);
     unit.totalScore = (unit.totalScore || 0) + totalPoints;
-    
+
 
     await unit.save();
 
@@ -186,13 +187,13 @@ export const updateProgramToUnit = async (req, res) => {
     res.status(200).json({
       message: "Program updated successfully",
       program,
-      updatedTotalScore: unit.totalScore, 
+      updatedTotalScore: unit.totalScore,
     });
 
     updateAllUnitRanks().catch((err) => {
       console.error('Failed to trigger background rank update:', err);
     });
-    
+
   } catch (error) {
     console.error("Error updating program:", error);
     res.status(500).json({ message: "Server error while updating program" });
@@ -213,8 +214,8 @@ export const deleteProgramfromUnit = async (req, res) => {
       return res.status(404).json({ message: "Program not found in this unit" });
     }
 
-    const programPoints = 3; 
-    const photoPoints = program.image ? program.image.length : 0; 
+    const programPoints = 3;
+    const photoPoints = program.image ? program.image.length : 0;
     const totalPointsToSubtract = programPoints + photoPoints;
 
     if (program.image && program.image.length > 0) {
@@ -224,7 +225,7 @@ export const deleteProgramfromUnit = async (req, res) => {
       await Promise.all(deletePromises);
     }
 
-    unit.programs.pull(programId); 
+    unit.programs.pull(programId);
     unit.totalScore = (unit.totalScore || 0) - totalPointsToSubtract;
 
     if (unit.totalScore < 0) {
@@ -233,9 +234,9 @@ export const deleteProgramfromUnit = async (req, res) => {
 
     await unit.save();
 
-    res.status(200).json({ 
+    res.status(200).json({
       message: "Program deleted successfully",
-      updatedTotalScore: unit.totalScore 
+      updatedTotalScore: unit.totalScore
     });
 
     updateAllUnitRanks().catch((err) => {
@@ -248,10 +249,9 @@ export const deleteProgramfromUnit = async (req, res) => {
   }
 };
 
-
 export const getProgram = async (req, res) => {
   try {
-    const userId = req.user.id; 
+    const userId = req.user.id;
     const user = await User.findById(userId);
 
     if (!user) {
@@ -282,10 +282,12 @@ export const getProgram = async (req, res) => {
   }
 };
 
+//==============Unit Controllers====================
+
 export const addProgram = async (req, res) => {
   try {
     const { programName, description, date } = req.body;
-    const userId = req.user.id; 
+    const userId = req.user.id;
     const user = await User.findById(userId);
 
     if (!user) {
@@ -324,7 +326,7 @@ export const addProgram = async (req, res) => {
       createdBy: user._id,
     };
 
-    const programPoints = 3; 
+    const programPoints = 3;
     const photoPoints = imageUrls.length;
     const totalPoints = programPoints + photoPoints;
 
@@ -332,12 +334,12 @@ export const addProgram = async (req, res) => {
     unit.totalScore = (unit.totalScore || 0) + totalPoints;
 
     await unit.save();
-    
+
     const createdProgram = unit.programs[unit.programs.length - 1];
 
     res.status(201).json({
       message: "Program added successfully. Ranks are updating.",
-      program: createdProgram, 
+      program: createdProgram,
       totalPointsEarned: totalPoints,
       updatedTotalScore: unit.totalScore,
     });
@@ -351,9 +353,63 @@ export const addProgram = async (req, res) => {
   }
 };
 
-export const deleteProgramController = async (req, res) => {
+export const updateProgram = async (req, res) => {
   try {
-    const { id } = req.params; // programId
+    const { programId } = req.params;
+    const { name, date, description } = req.body;
+    const unitId = req.user.id;
+
+    const existingImages = JSON.parse(req.body.existingImages || "[]");
+    const imagesToDelete = JSON.parse(req.body.imagesToDelete || "[]");
+
+    if (imagesToDelete.length > 0) {
+      await Promise.all(imagesToDelete.map((key) => deleteFileFromS3(key)));
+    }
+
+    let newUploadedImages = [];
+    if (req.files && req.files.length > 0) {
+      const uploadResults = await Promise.all(
+        req.files.map((file) => uploadFileToS3("programs/", file))
+      );
+      newUploadedImages = uploadResults.map((r) => r.url); 
+    }
+
+    const normalizedExisting = existingImages.map((img) =>
+      typeof img === "string" ? img : img.url
+    );
+
+    const finalImages = [...normalizedExisting, ...newUploadedImages].filter(Boolean);
+
+    const unit = await Unit.findById(unitId);
+    if (!unit) {
+      return res.status(404).json({ message: "Unit not found" });
+    }
+
+    const program = unit.programs.id(programId);
+    if (!program) {
+      return res.status(404).json({ message: "Program not found" });
+    }
+
+    program.name = name;
+    program.date = date;
+    program.description = description;
+    program.image = finalImages;
+
+    await unit.save();
+
+    res.status(200).json({
+      message: "Program updated successfully",
+      program,
+    });
+  } catch (error) {
+    console.error("Error updating program:", error);
+    res.status(500).json({ message: "Server error while updating program" });
+  }
+};
+
+export const deleteProgram = async (req, res) => {
+  try {
+    const { id } = req.params;
     const userId = req.user.id;
 
     const user = await User.findById(userId);
@@ -379,11 +435,9 @@ export const deleteProgramController = async (req, res) => {
 
     const program = unit.programs[programIndex];
 
-    // 🔹 Delete all program images from S3
     if (program.image && program.image.length > 0) {
       for (const imgUrl of program.image) {
         try {
-          // Extract S3 key from the URL
           const key = imgUrl.split(`.amazonaws.com/`)[1];
           if (key) {
             await deleteFileFromS3(key);
@@ -398,10 +452,8 @@ export const deleteProgramController = async (req, res) => {
     const photoPoints = program.image?.length || 0;
     const totalPoints = programPoints + photoPoints;
 
-    // 🔹 Remove program
     unit.programs.splice(programIndex, 1);
 
-    // 🔹 Deduct points from unit’s total score (never below 0)
     unit.totalScore = Math.max(0, (unit.totalScore || 0) - totalPoints);
 
     await unit.save();

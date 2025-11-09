@@ -67,7 +67,7 @@ import { login, logout } from "../Store/slices/userSlice";
 const backendURL =
   window.location.hostname === "localhost"
     ? "http://localhost:5000/api/"
-    : "http://192.168.1.7:5000/api/";
+    : "http://192.168.1.4:5000/api/";
 
 const instance = axios.create({
   baseURL: backendURL,
