@@ -22,10 +22,15 @@ dotenv.config();
 app.use("/uploads", express.static(path.join(__dirname, "public", "uploads")));
 
 // CORS (testing: allow everything)
-app.use(cors({
-  origin: true,
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: [
+      "https://msfcheekodepanchayat.online", // your frontend
+      "https://www.msfcheekodepanchayat.online", // optional www
+    ],
+    credentials: true,
+  })
+);
 
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));

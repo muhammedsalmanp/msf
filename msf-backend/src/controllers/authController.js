@@ -84,10 +84,13 @@ export const Login = async (req, res) => {
     console.log("🍪 Setting refresh token cookie...");
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000, 
+      secure: true, // Force HTTPS (you have SSL on AWS)
+      sameSite: "none", // Allow cross-site cookies
+      domain: ".msfcheekodepanchayatcommittee.fun", // So both www and root share cookie
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
+
     console.log("✅ Cookie set successfully");
 
     console.log("📤 Sending response...");
@@ -96,8 +99,8 @@ export const Login = async (req, res) => {
       accessToken,
       user: userResponse,
     });
-    
-    console.log("✅ Login response sent successfully",accessToken,userResponse);
+
+    console.log("✅ Login response sent successfully", accessToken, userResponse);
 
   } catch (error) {
     console.error("🔥 Login failed:", error.message);
@@ -114,10 +117,12 @@ export const logoutUser = async (req, res) => {
     // The options here MUST match the options you used in res.cookie()
     res.clearCookie("refreshToken", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Must match
-      sameSite: "strict",                        // Must match
-      path: "/", // Explicitly add path, defaults often work but this is safer
+      secure: true,
+      sameSite: "none",
+      domain: ".msfcheekodepanchayatcommittee.fun",
+      path: "/",
     });
+
 
     console.log("✅ Cookie cleared successfully");
 
@@ -131,16 +136,16 @@ export const logoutUser = async (req, res) => {
 };
 
 
-export const getUnits = async (req,res)=>{
+export const getUnits = async (req, res) => {
   try {
     console.log('units ');
-    
+
     const units = await Unit.find().select('name');
     console.log(units);
-    
+
     res.status(200).json(units)
   } catch (error) {
     res.status(500).json({ message: "Error fetching units", error });
-  } 
+  }
 
 }
