@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { setLoading } from "../../../store/slices/loadingSlice";
-import { showNotification } from "../../../store/slices/notificationSlice";
+import { setLoading } from "../../../Store/slices/loadingSlice";
+import { showNotification } from "../../../Store/slices/notificationSlice";
 import axiosInstance from "../../../api/axiosInstance";
 import FreeCropModal from "./FreeCropModal";
 

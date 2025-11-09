@@ -6,8 +6,8 @@ import EditUserModal from "./EditUserModal";
 import ChangeRoleModal from "./ChangeRoleModal"; // ✅ Import the new modal
 import { useDispatch } from "react-redux";
 
-import { showNotification } from "../../../store/slices/notificationSlice"; // ✅ Import notification
-import { setLoading } from "../../../store/slices/loadingSlice"; // ✅ Import loading
+import { showNotification } from "../../../Store/slices/notificationSlice"; // ✅ Import notification
+import { setLoading } from "../../../Store/slices/loadingSlice"; // ✅ Import loading
 
 const EditCommittee = ({ unitId, committeeType, members, onBack }) => {
   const [committeeMembers, setCommitteeMembers] = useState(members || []);
