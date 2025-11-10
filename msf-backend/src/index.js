@@ -24,9 +24,8 @@ app.use("/uploads", express.static(path.join(__dirname, "public", "uploads")));
 app.use(
   cors({
     origin: [
-      "https://msfcheekodepanchayat.online", 
-      "https://www.msfcheekodepanchayat.online",
-      "http://localhost:5173/"
+      "http://msfcheekodepanchayat.online", 
+      "http://www.msfcheekodepanchayat.online",
     ],
     credentials: true,
   })
