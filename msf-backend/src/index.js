@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import connectDB from "./config/db.js";
 import cors from "cors";
-import os from "os";   // 👈 to detect LAN IP
+import os from "os";   
 
 import authRoute from "./routes/authRoutes.js";
 import adminRoute from "./routes/adminRoute.js";
@@ -18,15 +18,16 @@ const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
-// Static files
+
 app.use("/uploads", express.static(path.join(__dirname, "public", "uploads")));
 
-// CORS (testing: allow everything)
+
 app.use(
   cors({
     origin: [
-      "https://msfcheekodepanchayat.online", // your frontend
-      "https://www.msfcheekodepanchayat.online", // optional www
+      "https://msfcheekodepanchayat.online", 
+      "https://www.msfcheekodepanchayat.online", 
+      "http://localhost:5173",
     ],
     credentials: true,
   })
@@ -36,16 +37,15 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Connect DB
+
 connectDB();
 
-// Routes
 app.use("/api/auth", authRoute);
 app.use("/api/admin", adminRoute);
 app.use("/api/user", userRoute);
 app.use("/api/unit",unitRoute)
 
-// Detect LAN IP
+
 function getLocalIp() {
   const nets = os.networkInterfaces();
   for (const name of Object.keys(nets)) {

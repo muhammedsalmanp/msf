@@ -197,15 +197,15 @@ const AddProgramModal = ({
                 {/* Text Inputs */}
                 <div>
                   <label className="block text-sm font-semibold text-slate-600 mb-1">Program Name</label>
-                  <input type="text" name="name" value={data.name} onChange={onFormChange} className="w-full p-2 border rounded-md" required />
+                  <input type="text" name="name" value={data.name || ""} onChange={onFormChange} className="w-full p-2 border rounded-md" required />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-600 mb-1">Date</label>
-                  <input type="date" name="date" value={data.date} onChange={onFormChange} className="w-full p-2 border rounded-md" required />
+                  <input type="date" name="date" value={data.date || ""} onChange={onFormChange} className="w-full p-2 border rounded-md" required />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-600 mb-1">Description</label>
-                  <textarea name="description" value={data.description} onChange={onFormChange} rows="4" className="w-full p-2 border rounded-md" required></textarea>
+                  <textarea name="description" value={data.description || ""} onChange={onFormChange} rows="4" className="w-full p-2 border rounded-md" required></textarea>
                 </div>
                 
                 {/* Image Uploader */}

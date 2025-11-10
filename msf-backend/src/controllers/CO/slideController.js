@@ -3,9 +3,6 @@ import Slide from '../../models/Slide.js';
 import { uploadFileToS3, deleteFileFromS3 } from '../../config/awsS3Helper.js';
 
 
-
-
-
 export const getSlides = async (req, res) => {
   try {
     const slides = await Slide.find().sort({ createdAt: -1 }).limit(7);

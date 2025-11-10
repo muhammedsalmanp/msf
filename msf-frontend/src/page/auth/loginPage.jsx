@@ -24,7 +24,7 @@ function LoginPage() {
   const validate = () => {
     const newErrors = {};
     if (!identifier.trim()) {
-      newErrors.identifier = 'Username or Phone is required.';
+      newErrors.identifier = 'Username is required.';
     }
     if (!password.trim()) {
       newErrors.password = 'Password is required';
