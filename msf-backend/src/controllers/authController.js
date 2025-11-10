@@ -1,66 +1,43 @@
 import bcrypt from 'bcrypt';
 import User from "../models/User.js";
-import { generateAccessToken, generateRefreshToken } from '../service/jwt.js'
-import Unit from '../models/Unit.js';
-
+import Unit from "../models/Unit.js";
+import { generateAccessToken, generateRefreshToken } from '../service/jwt.js';
 
 export const Login = async (req, res) => {
   try {
     console.log("🔹 Login function called");
 
     const { username, password } = req.body;
-    console.log("📥 Request body:", { username });
-
     if (!username || !password) {
       return res.status(400).json({ message: "Username and password are required." });
     }
 
     let entity = null;
     let entityType = null;
-    let userResponse = {};
 
-    console.log("🔎 Searching for UNIT with username:", username);
+    // 🔍 Check if it's a Unit
     entity = await Unit.findOne({ username });
-
     if (entity) {
-      console.log("✅ UNIT found:", { id: entity._id, username: entity.username });
       entityType = 'unit';
     } else {
-      console.log("❌ No UNIT found. Searching for USER with username:", username);
+      // 🔍 Else check if it's a User
       entity = await User.findOne({ username });
-
       if (entity) {
-        if (entity.isAdmin) {
-          console.log("✅ ADMIN USER found:", { id: entity._id });
-          entityType = 'admin';
-        } else {
-          console.log("✅ INCHARGE USER (non-admin) found:", { id: entity._id });
-          entityType = 'incharge';
-        }
+        entityType = entity.isAdmin ? 'admin' : 'incharge';
       }
     }
 
-
     if (!entity || !entityType) {
-      console.log("❌ No account found for:", username);
       return res.status(400).json({ message: "Invalid username or password." });
     }
 
-
-    if (!entity.password) {
-      console.log(`❌ ${entityType.toUpperCase()} account has no password set:`, entity._id);
-      return res.status(400).json({ message: `${entityType} account is not configured for login.` });
-    }
-
-    console.log(`🔑 Comparing password for ${entityType.toUpperCase()}...`);
-    const isValid = await bcrypt.compare(password, entity.password);
-
+    // 🔐 Verify password
+    const isValid = await bcrypt.compare(password, entity.password || "");
     if (!isValid) {
-      console.log(`❌ Password mismatch for ${entityType.toUpperCase()}:`, entity._id);
       return res.status(400).json({ message: "Invalid username or password." });
     }
-    console.log(`✅ ${entityType.toUpperCase()} Password valid`);
 
+    // ✅ Token payload
     const tokenPayload = {
       id: entity._id,
       username: entity.username,
@@ -68,7 +45,8 @@ export const Login = async (req, res) => {
       ...(entityType === 'admin' && { isAdmin: entity.isAdmin })
     };
 
-    userResponse = {
+    // ✅ Prepare response user data
+    const userResponse = {
       type: entityType,
       id: entity._id,
       username: entity.username,
@@ -76,33 +54,30 @@ export const Login = async (req, res) => {
       ...(entityType !== 'unit' && { profileImage: entity.profileImage })
     };
 
-    console.log(`🔐 Generating tokens for ${entityType}...`);
+    // ✅ Generate tokens
     const accessToken = generateAccessToken(tokenPayload);
     const refreshToken = generateRefreshToken(tokenPayload);
-    console.log("✅ Tokens generated");
 
-    console.log("🍪 Setting refresh token cookie...");
-   res.cookie("refreshToken", refreshToken, {
+    // ✅ Set refresh token cookie
+    res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000, 
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // 🟢 Better for local dev
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      path: "/",
     });
 
-    console.log("✅ Cookie set successfully");
+    console.log("✅ Refresh token cookie set");
 
-    console.log("📤 Sending response...");
-     res.clearCookie("refreshToken", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Must match
-      sameSite: "strict",                        // Must match
-      path: "/", // Explicitly add path, defaults often work but this is safer
+    // ✅ Send success response
+    return res.status(200).json({
+      message: "Login successful",
+      accessToken,
+      user: userResponse,
     });
-
-    console.log("✅ Login response sent successfully", accessToken, userResponse);
 
   } catch (error) {
-    console.error("🔥 Login failed:", error.message);
+    console.error("🔥 Login failed:", error);
     res.status(500).json({ message: "Login failed" });
   }
 };
@@ -112,19 +87,14 @@ export const logoutUser = async (req, res) => {
   try {
     console.log("Clearing refresh token cookie...");
 
-    // --- THIS IS THE FIX ---
-    // The options here MUST match the options you used in res.cookie()
     res.clearCookie("refreshToken", {
       httpOnly: true,
-      secure: true,
-      sameSite: "none",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       path: "/",
     });
 
-
     console.log("✅ Cookie cleared successfully");
-
-    // Send the success response
     return res.status(200).json({ message: "Logout successful" });
 
   } catch (error) {
@@ -133,17 +103,11 @@ export const logoutUser = async (req, res) => {
   }
 };
 
-
 export const getUnits = async (req, res) => {
   try {
-    console.log('units ');
-
     const units = await Unit.find().select('name');
-    console.log(units);
-
-    res.status(200).json(units)
+    res.status(200).json(units);
   } catch (error) {
     res.status(500).json({ message: "Error fetching units", error });
   }
-
-}
+};

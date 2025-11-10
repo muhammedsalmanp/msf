@@ -288,13 +288,10 @@ export const addProgram = async (req, res) => {
   try {
     const { programName, description, date } = req.body;
     const userId = req.user.id;
-    const user = await User.findById(userId);
+    const user = await Unit.findById(userId);
 
     if (!user) {
       return res.status(401).json({ message: "Unauthorized" });
-    }
-    if (!user.unit) {
-      return res.status(400).json({ message: "User has no assigned unit" });
     }
 
     if (!programName || !description || !date) {
