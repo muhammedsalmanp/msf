@@ -48,29 +48,34 @@ instance.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (!error.response || error.response.status !== 401) {
-      return Promise.reject(error);
-    }
-
-    if (originalRequest._retry) {
+    // 1. Not 401 or already retried? Reject immediately.
+    if (!error.response || error.response.status !== 401 || originalRequest._retry) {
       return Promise.reject(error);
     }
 
     originalRequest._retry = true;
 
     if (isRefreshing) {
-      // wait for refresh to complete
+      // 2. Refresh already in progress? Queue the request.
       return new Promise((resolve, reject) => {
         failedQueue.push({
           resolve: (token) => {
-            originalRequest.headers["Authorization"] = `Bearer ${token}`;
-            resolve(instance(originalRequest));
+            // 🟢 FIX 1: Clone config and apply new token for retry
+            const newConfig = { 
+              ...originalRequest, 
+              headers: { 
+                ...originalRequest.headers, 
+                "Authorization": `Bearer ${token}` 
+              } 
+            };
+            resolve(instance(newConfig));
           },
           reject: (err) => reject(err),
         });
       });
     }
 
+    // 3. Start the token refresh process.
     isRefreshing = true;
 
     try {
@@ -85,9 +90,19 @@ instance.interceptors.response.use(
       );
 
       processQueue(null, newToken);
-      originalRequest.headers["Authorization"] = `Bearer ${newToken}`;
-      return instance(originalRequest);
+      
+      // 🟢 FIX 2: Clone config and apply new token for immediate retry
+      const retryConfig = { 
+        ...originalRequest, 
+        headers: { 
+          ...originalRequest.headers, 
+          "Authorization": `Bearer ${newToken}` 
+        } 
+      };
+      return instance(retryConfig);
+
     } catch (refreshError) {
+      // 4. Refresh failed? Clear queue and force logout.
       processQueue(refreshError, null);
       store.dispatch(logout());
       return Promise.reject(refreshError);

@@ -88,6 +88,7 @@ export const Login = async (req, res) => {
       sameSite: "none", // Allow cross-site cookies
       path: "/",
       maxAge: 7 * 24 * 60 * 60 * 1000,
+      Partitioned: true,
     });
 
     console.log("✅ Cookie set successfully");
