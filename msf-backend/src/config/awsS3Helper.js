@@ -18,7 +18,7 @@ const s3Client = new S3Client({
 
 const bucketName = process.env.AWS_BUCKET_NAME;
 
-// Upload file to S3 and return the URL and key
+
 export async function uploadFileToS3(folderPath, file) {
   const uniqueName = crypto.randomBytes(16).toString('hex');
   const extension = file.mimetype.split('/')[1];
