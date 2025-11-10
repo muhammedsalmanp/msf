@@ -86,7 +86,6 @@ export const Login = async (req, res) => {
       httpOnly: true,
       secure: true, // Force HTTPS (you have SSL on AWS)
       sameSite: "none", // Allow cross-site cookies
-      domain: ".msfcheekodepanchayatcommittee.fun", // So both www and root share cookie
       path: "/",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
@@ -119,7 +118,6 @@ export const logoutUser = async (req, res) => {
       httpOnly: true,
       secure: true,
       sameSite: "none",
-      domain: ".msfcheekodepanchayatcommittee.fun",
       path: "/",
     });
 
