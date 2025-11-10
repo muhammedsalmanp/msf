@@ -21,7 +21,6 @@ dotenv.config();
 // Static files
 app.use("/uploads", express.static(path.join(__dirname, "public", "uploads")));
 
-// CORS (testing: allow everything)
 app.use(
   cors({
     origin: [
