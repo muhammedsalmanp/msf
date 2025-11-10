@@ -82,22 +82,21 @@ export const Login = async (req, res) => {
     console.log("✅ Tokens generated");
 
     console.log("🍪 Setting refresh token cookie...");
-    res.cookie("refreshToken", refreshToken, {
+   res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: true, // Force HTTPS (you have SSL on AWS)
-      sameSite: "none", // Allow cross-site cookies
-      path: "/",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      Partitioned: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, 
     });
 
     console.log("✅ Cookie set successfully");
 
     console.log("📤 Sending response...");
-    res.status(200).json({
-      message: "Login success",
-      accessToken,
-      user: userResponse,
+     res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // Must match
+      sameSite: "strict",                        // Must match
+      path: "/", // Explicitly add path, defaults often work but this is safer
     });
 
     console.log("✅ Login response sent successfully", accessToken, userResponse);
