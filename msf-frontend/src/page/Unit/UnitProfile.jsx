@@ -6,10 +6,10 @@ import EditCommittee from "./unitCardComponents/user/EditCommittee";
 import { useDispatch } from 'react-redux';
 import { showNotification } from "../../Store/slices/notificationSlice";
 import { setLoading } from "../../Store/slices/loadingSlice";
-import CommitteeSection from "./unitCardComponents/CommitteeSection";
-import ProgramCard from "./unitCardComponents/ProgramCard";
-import ProgramModal from "./unitCardComponents/ProgramModal";
-import AddProgramModal from "./unitCardComponents/AddProgramModal";
+import CommitteeSection from "./unitCardComponents/committe/CommitteeSection";
+import ProgramCard from "./unitCardComponents/program/ProgramCard";
+import ProgramModal from "./unitCardComponents/program/ProgramModal";
+import AddProgramModal from "./unitCardComponents/program/AddProgramModal";
 import ConfirmationModal from "./unitCardComponents/ConfirmationModal";
 import UnitSettingsTab from "./unitCardComponents/setings/UnitSettingsTab";
 

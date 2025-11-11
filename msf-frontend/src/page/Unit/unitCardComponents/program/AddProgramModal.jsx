@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from "framer-motion";
 import { X, Trash2, Crop, FileImage } from "lucide-react";
 import imageCompression from 'browser-image-compression';
-import ImageCropperModal from './ImageCropperModal';
+import ImageCropperModal from '../ImageCropperModal';
 
 const AddProgramModal = ({
     mode = 'add',
