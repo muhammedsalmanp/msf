@@ -335,7 +335,6 @@ const UnitProfile = () => {
                                 }}
                                 onEdit={() => handleOpenCommitteeEdit('msf')}
                             />
-                            {hasHarithaCommittee && (
                                 <CommitteeSection
                                     title="Haritha Committee"
                                     committee={unit.harithaCommittee}
@@ -347,7 +346,6 @@ const UnitProfile = () => {
                                     }}
                                     onEdit={() => handleOpenCommitteeEdit('haritha')}
                                 />
-                            )}
                         </motion.div>
                     )}
 

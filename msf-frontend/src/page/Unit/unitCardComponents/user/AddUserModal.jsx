@@ -22,6 +22,7 @@ const AVATAR_URLS = {
   ],
 };
 
+
 const AddUserModal = ({ unitId, committeeType, onClose, onSubmit }) => {
   const dispatch = useDispatch();
   const cropperRef = useRef(null);
