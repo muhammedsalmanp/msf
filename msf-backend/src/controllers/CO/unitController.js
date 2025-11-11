@@ -141,7 +141,7 @@ export const updateUnitUsername = async (req, res) => {
     }
 
     const unit = await Unit.findByIdAndUpdate(
-      req.user.userId,
+      req.user.id,
       { username },
       { new: true, runValidators: true }
     );
@@ -160,13 +160,12 @@ export const updateUnitUsername = async (req, res) => {
 export const changeUnitPassword = async (req, res) => {
   try {
     const { oldPassword, password } = req.body;
-    console.log(oldPassword, password);
 
     if (!oldPassword || !password) {
       return res.status(400).json({ message: "Old and new passwords are required." });
     }
 
-    const unit = await Unit.findById(req.user.userId);
+    const unit = await Unit.findById(req.user.id);
     if (!unit) {
       return res.status(404).json({ message: "Unit not found." });
     }
