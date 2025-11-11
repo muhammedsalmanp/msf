@@ -286,7 +286,7 @@ export const getProgram = async (req, res) => {
 
 export const addProgram = async (req, res) => {
   try {
-    const { programName, description, date } = req.body;
+    const { name:programName, description, date } = req.body;
     const userId = req.user.id;
     const user = await Unit.findById(userId);
 
@@ -304,7 +304,7 @@ export const addProgram = async (req, res) => {
       return res.status(400).json({ message: "Maximum 10 images allowed" });
     }
 
-    const unit = await Unit.findById(user.unit);
+    const unit = await Unit.findById(userId);
     if (!unit) {
       return res.status(404).json({ message: "Unit not found" });
     }
@@ -409,29 +409,23 @@ export const deleteProgram = async (req, res) => {
     const { id } = req.params;
     const userId = req.user.id;
 
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-    if (!user.unit) {
-      return res.status(400).json({ message: "User has no assigned unit" });
-    }
-
-    const unit = await Unit.findById(user.unit);
+    const unit = await Unit.findById(userId);
     if (!unit) {
-      return res.status(404).json({ message: "Unit not found" });
+      return res.status(404).json({ message: "Unit not found or unauthorized" });
     }
 
     // 🔹 Find the program
     const programIndex = unit.programs.findIndex(
       (p) => p._id.toString() === id.toString()
     );
+
     if (programIndex === -1) {
       return res.status(404).json({ message: "Program not found" });
     }
 
     const program = unit.programs[programIndex];
 
+    // 🔹 Delete images from S3 if they exist
     if (program.image && program.image.length > 0) {
       for (const imgUrl of program.image) {
         try {
@@ -445,12 +439,15 @@ export const deleteProgram = async (req, res) => {
       }
     }
 
+    // 🔹 Calculate points
     const programPoints = 3;
     const photoPoints = program.image?.length || 0;
     const totalPoints = programPoints + photoPoints;
 
+    // 🔹 Remove the program
     unit.programs.splice(programIndex, 1);
 
+    // 🔹 Update score safely
     unit.totalScore = Math.max(0, (unit.totalScore || 0) - totalPoints);
 
     await unit.save();
@@ -466,5 +463,3 @@ export const deleteProgram = async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
-
-
