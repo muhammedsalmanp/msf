@@ -34,6 +34,7 @@ export const uploadSlide = async (req, res) => {
   }
 };
 
+
 export const deleteSlide = async (req, res) => {
   try {
     const { id } = req.params;

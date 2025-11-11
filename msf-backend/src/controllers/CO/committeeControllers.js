@@ -1,6 +1,7 @@
 import Unit from '../../models/Unit.js';
 import Role from '../../models/Role.js';
 import User from '../../models/User.js';
+import unitUsers from '../../models/unitUsers.js';
 import { uploadFileToS3, deleteFileFromS3 } from '../../config/awsS3Helper.js';
 
 
@@ -572,7 +573,7 @@ export const changeUserRoleInCommittee = async (req, res) => {
 export const deleteUserFromCommittee = async (req, res) => {
   try {
     const { userId } = req.params;
-
+     
     const user = await unitUsers.findById(userId).populate("roles.role");
     if (!user) {
       return res.status(404).json({ message: "User not found." });

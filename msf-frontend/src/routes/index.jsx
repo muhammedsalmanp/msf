@@ -43,7 +43,7 @@ import UnitCard from "../page/Admin/UnitDetiols/UnitCard";
 
 const AppRouter = () => {
     return (
-        // <ErrorBoundary>
+         <ErrorBoundary>
             <BrowserRouter>
                 <Routes>
 
@@ -83,11 +83,11 @@ const AppRouter = () => {
                         </Route>
                     </Route>
 
-                    {/* <Route path="*" element={<NotFoundPage />} /> */}
+                    <Route path="*" element={<NotFoundPage />} />
 
                 </Routes>
             </BrowserRouter>
-        // </ErrorBoundary>
+        </ErrorBoundary>
     )
 }
 
