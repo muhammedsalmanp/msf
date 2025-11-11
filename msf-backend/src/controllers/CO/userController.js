@@ -35,7 +35,8 @@ export const getUserProfile = async (req, res) => {
         profileImage: user.profileImage,
         inChargeOfUnits: user.inChargeOfUnits,
         username:user.username,
-        unit:user.unit
+        unit:user.unit,
+        gender:user.gender,
       },
     });
   } catch (error) {

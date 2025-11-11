@@ -27,7 +27,7 @@ function ProfileTab({ user, setUser }) {
   useEffect(() => {
     const fetchUnits = async () => {
       try {
-        const response = await axiosInstance.get("/user/units?page=1&limit=10");
+        const response = await axiosInstance.get("/user/units?page=1&limit=25");
         setUnits(response.data.units);
       } catch (error) {
         console.log("Error fetching units:", error);

@@ -3,29 +3,36 @@ import { X } from "lucide-react";
 import Cropper from "react-cropper";
 import "cropperjs/dist/cropper.css";
 import axios from "../../../api/axiosInstance";
-import { showNotification } from "../../../Store/slices/notificationSlice";
-import { setLoading } from "../../../Store/slices/loadingSlice";
+import imageCompression from "browser-image-compression";
 import { useDispatch } from "react-redux";
-import imageCompression from 'browser-image-compression'; 
+import { setLoading } from "../../../Store/slices/loadingSlice";
+import { showNotification } from "../../../Store/slices/notificationSlice";
 
-// Local avatars
-// import avthar1 from "public/assets/avthar-1.AVIF";
-// import avthar2 from "public/assets/avthar-2.JPG";
-// import avthar3 from "public/assets/avthar-3.JPG";
-// import avthar4 from "public/assets/avthar-4.JPEG";
-// import avthar5 from "public/assets/avthar-5.PNG";
-// import avthar6 from "public/assets/avthar-6.JPEG";
+// ✅ Avatars stored in `public/assets/avthar/`
+const AVATAR_URLS = {
+  FEMALE: [
+    "/assets/avthar/avthar-1.avif",
+    "/assets/avthar/avthar-2.jpg",
+    "/assets/avthar/avthar-3.jpg",
+  ],
+  MALE: [
+    "/assets/avthar/avthar-4.jpeg",
+    "/assets/avthar/avthar-5.png",
+    "/assets/avthar/avthar-6.jpeg",
+  ],
+};
 
 const AddUserModal = ({ unitId, committeeType, onClose, onSubmit }) => {
-  const [profilePic, setProfilePic] = useState(null); // Preview URL
-  const [croppedImageFile, setCroppedImageFile] = useState(null); // File to be uploaded
-  const [originalMimeType, setOriginalMimeType] = useState('image/jpeg');
-  const [selectedAvatarPath, setSelectedAvatarPath] = useState(null); 
-  const [showCropper, setShowCropper] = useState(false);
-  const [imageForCrop, setImageForCrop] = useState(null);
+  const dispatch = useDispatch();
   const cropperRef = useRef(null);
   const fileInputRef = useRef(null);
-  const dispatch = useDispatch();
+
+  const [profilePic, setProfilePic] = useState(null);
+  const [croppedImageFile, setCroppedImageFile] = useState(null);
+  const [originalMimeType, setOriginalMimeType] = useState("image/jpeg");
+  const [selectedAvatarPath, setSelectedAvatarPath] = useState(null);
+  const [showCropper, setShowCropper] = useState(false);
+  const [imageForCrop, setImageForCrop] = useState(null);
 
   const [name, setName] = useState("");
   const [gender, setGender] = useState("Male");
@@ -42,103 +49,94 @@ const AddUserModal = ({ unitId, committeeType, onClose, onSubmit }) => {
     "Member",
   ];
 
-  // const avatars = [avthar1, avthar2, avthar3, avthar4, avthar5, avthar6];
-const avatars = [
-  "/assets/avthar-1.AVIF",
-  "/assets/avthar-2.JPG",
-  "/assets/avthar-3.JPG",
-  "/assets/avthar-4.JPEG",
-  "/assets/avthar-5.PNG",
-  "/assets/avthar-6.JPEG",
-];
-  // File upload handler
+  // --- File Upload Handler ---
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.type === 'image/png' || file.type === 'image/gif') {
-        setOriginalMimeType(file.type);
-      } else {
-        setOriginalMimeType('image/jpeg');
-      }
+      setOriginalMimeType(file.type === "image/png" ? file.type : "image/jpeg");
       setImageForCrop(URL.createObjectURL(file));
       setShowCropper(true);
     }
   };
 
-  // Save cropped image
+  // --- Save Cropped Image ---
   const handleCropSave = async () => {
     const cropper = cropperRef.current?.cropper;
-    if (cropper) {
-      const blob = await new Promise((resolve) => {
-        cropper.getCroppedCanvas({ width: 300, height: 300 })
-               .toBlob(resolve, originalMimeType, 1.0);
-      });
+    if (!cropper) return;
 
-      const options = {
-        maxSizeMB: 0.5,
-        maxWidthOrHeight: 800,
-        useWebWorker: true,
-      };
+    const blob = await new Promise((resolve) => {
+      cropper
+        .getCroppedCanvas({ width: 300, height: 300 })
+        .toBlob(resolve, originalMimeType, 1.0);
+    });
 
-      try {
-        dispatch(setLoading(true));
-        
-        const imageFile = new File([blob], "profile.jpg", { type: blob.type });
-        const compressedFile = await imageCompression(imageFile, options);
-        
-        dispatch(setLoading(false));
+    const options = {
+      maxSizeMB: 0.5,
+      maxWidthOrHeight: 800,
+      useWebWorker: true,
+    };
 
-        const croppedUrl = URL.createObjectURL(compressedFile);
-        setProfilePic(croppedUrl); 
-        setCroppedImageFile(compressedFile); 
-        setShowCropper(false);
-        setSelectedAvatarPath(null); // Clear avatar path
-        
-        if (fileInputRef.current) {
-          fileInputRef.current.value = null;
-        }
-        
-      } catch (error) {
-        dispatch(setLoading(false));
-        dispatch(showNotification({
-          type: 'error',
-          message: 'Failed to compress image.',
-        }));
-        console.error("Compression error:", error);
-      }
-    }
-  };
-
-  // Handle avatar selection
-  const handleAvatarSelect = async (avatarUrl) => {
-    dispatch(setLoading(true));
     try {
-      const response = await fetch(avatarUrl);
-      const blob = await response.blob();
-      const options = {
-        maxSizeMB: 0.5,
-        maxWidthOrHeight: 800,
-        useWebWorker: true,
-      };
-      const imageFile = new File([blob], "avatar.jpg", { type: blob.type });
+      dispatch(setLoading(true));
+
+      const imageFile = new File([blob], "profile.jpg", { type: blob.type });
       const compressedFile = await imageCompression(imageFile, options);
-      const previewUrl = URL.createObjectURL(compressedFile);
-      setProfilePic(previewUrl);
+      const croppedUrl = URL.createObjectURL(compressedFile);
+
+      setProfilePic(croppedUrl);
       setCroppedImageFile(compressedFile);
-      setSelectedAvatarPath(avatarUrl);
-      
+      setShowCropper(false);
+      setSelectedAvatarPath(null);
+
+      if (fileInputRef.current) fileInputRef.current.value = null;
     } catch (error) {
-      console.error("Error processing avatar:", error);
-      dispatch(showNotification({
-        type: 'error',
-        message: 'Failed to select avatar.',
-      }));
+      dispatch(
+        showNotification({
+          type: "error",
+          message: "Failed to compress image.",
+        })
+      );
+      console.error("Compression error:", error);
     } finally {
       dispatch(setLoading(false));
     }
   };
 
-  // Name validation
+  // --- Handle Avatar Selection ---
+  const handleAvatarSelect = async (avatarUrl) => {
+    dispatch(setLoading(true));
+    try {
+      const response = await fetch(avatarUrl);
+      const blob = await response.blob();
+
+      const options = {
+        maxSizeMB: 0.5,
+        maxWidthOrHeight: 800,
+        useWebWorker: true,
+      };
+
+      const imageFile = new File([blob], "avatar.jpg", { type: blob.type });
+      const compressedFile = await imageCompression(imageFile, options);
+      const previewUrl = URL.createObjectURL(compressedFile);
+
+      // ✅ Treat avatar as file upload
+      setProfilePic(previewUrl);
+      setCroppedImageFile(compressedFile);
+      setSelectedAvatarPath(avatarUrl);
+    } catch (error) {
+      console.error("Error processing avatar:", error);
+      dispatch(
+        showNotification({
+          type: "error",
+          message: "Failed to select avatar.",
+        })
+      );
+    } finally {
+      dispatch(setLoading(false));
+    }
+  };
+
+  // --- Name Validation ---
   const validateName = (value) => {
     if (!value.trim()) return "Name cannot be empty.";
     if (!/^[A-Za-z\s]+$/.test(value)) return "Only letters are allowed.";
@@ -148,7 +146,7 @@ const avatars = [
   const handleBlur = (field) =>
     setTouched((prev) => ({ ...prev, [field]: true }));
 
-  // Submit handler
+  // --- Submit Handler ---
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -167,8 +165,8 @@ const avatars = [
     formData.append("committeeType", committeeType);
 
     if (croppedImageFile) {
-      formData.append("profileImage", croppedImageFile, croppedImageFile.name || "profile.jpg");
-    } 
+      formData.append("profileImage", croppedImageFile, "profile.jpg");
+    }
 
     dispatch(setLoading(true));
 
@@ -181,25 +179,29 @@ const avatars = [
       console.log("✅ User added:", res.data.user);
       onSubmit(res.data.user);
 
-      dispatch(showNotification({
-        type: 'success',
-        message: 'User added successfully!',
-      }));
+      dispatch(
+        showNotification({
+          type: "success",
+          message: "User added successfully!",
+        })
+      );
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Failed to add user!';
-      dispatch(showNotification({
-        type: 'error',
-        message: errorMessage,
-      }));
+      const errorMessage =
+        error.response?.data?.message || "Failed to add user!";
+      dispatch(
+        showNotification({
+          type: "error",
+          message: errorMessage,
+        })
+      );
     } finally {
       dispatch(setLoading(false));
     }
   };
 
+  // --- Filter Avatars by Gender ---
   const getFilteredAvatars = () => {
-    if (gender === "Male") return avatars.slice(3, 6);
-    if (gender === "Female") return avatars.slice(0, 3);
-    return [];
+    return gender === "Female" ? AVATAR_URLS.FEMALE : AVATAR_URLS.MALE;
   };
 
   return (
@@ -219,8 +221,6 @@ const avatars = [
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* --- Profile Section --- */}
           <div className="flex flex-col items-center gap-4">
-            
-            {/* Profile Pic Preview */}
             {profilePic ? (
               <img
                 src={profilePic}
@@ -233,8 +233,6 @@ const avatars = [
               </div>
             )}
 
-            {/* --- Conditional Upload/Avatar Section --- */}
-            {/* If a file is uploaded (pic exists but it's not an avatar), show "Change" button */}
             {profilePic && !selectedAvatarPath ? (
               <button
                 type="button"
@@ -244,7 +242,6 @@ const avatars = [
                 Change your image
               </button>
             ) : (
-              // Otherwise, show the full avatar and upload selection
               <>
                 <p className="text-gray-700 text-sm font-medium text-center">
                   Upload your photo or choose any of the avatars
@@ -276,7 +273,6 @@ const avatars = [
 
             <input
               ref={fileInputRef}
-              id="profileUploadInput"
               type="file"
               accept="image/*"
               onChange={handleImageUpload}
@@ -284,7 +280,7 @@ const avatars = [
             />
           </div>
 
-          {/* --- Name Field --- */}
+          {/* --- Name --- */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Full Name
@@ -306,12 +302,9 @@ const avatars = [
             {touched.name && errors.name && (
               <p className="text-red-500 text-sm mt-1">{errors.name}</p>
             )}
-            {touched.name && !errors.name && (
-              <p className="text-green-600 text-sm mt-1">Looks good!</p>
-            )}
           </div>
 
-          {/* --- Gender Dropdown --- */}
+          {/* --- Gender --- */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Gender
@@ -320,15 +313,13 @@ const avatars = [
               value={gender}
               onChange={(e) => {
                 setGender(e.target.value);
-                // Only reset pic if it wasn't a file upload (i.e., it was an avatar or nothing)
                 if (selectedAvatarPath || !profilePic) {
                   setProfilePic(null);
-                  setCroppedImageFile(null); 
+                  setCroppedImageFile(null);
                   setSelectedAvatarPath(null);
                 }
               }}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              // ✅ REMOVED the 'disabled' prop here
             >
               <option value="Male">Male</option>
               <option value="Female">Female</option>
