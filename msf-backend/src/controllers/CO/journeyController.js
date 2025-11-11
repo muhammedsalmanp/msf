@@ -1,5 +1,6 @@
 import PanchayathJourney from '../../models/PanchayathJourney.js';
 
+
 export const getJourney = async (req, res) => {
     try {
 

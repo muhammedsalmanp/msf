@@ -15,7 +15,7 @@ router.put('/password', verifyAccessToken, changeUnitPassword);
 //=============Program===================
 router.put('/programs/:programId', verifyAccessToken, upload.array('images', 10), updateProgram);
 router.post(`/programs`, verifyAccessToken, upload.array('images', 10), addProgram);
-router.delete('/programs/:programId', verifyAccessToken, deleteProgram);
+router.delete('/programs/:id', verifyAccessToken, deleteProgram);
 
 //=============Committe====================
 router.get("/committee/:committeeType", verifyAccessToken, getCommitteeUsers);
