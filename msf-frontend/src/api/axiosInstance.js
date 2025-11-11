@@ -124,13 +124,14 @@ import { login, logout } from "../Store/slices/userSlice";
 const hostname = window.location.hostname;
 let backendURL;
 
-// ✅ Automatically select backend base URL
-if (hostname === "localhost" || hostname.startsWith("192.")) {
-  backendURL = "http://localhost:5000/api/"; // local backend
-} else {
-  backendURL = "https://msfcheekodepanchayatcommittee.fun/api/"; // production backend
-}
+// // ✅ Automatically select backend base URL
+// if (hostname === "localhost" || hostname.startsWith("192.")) {
+//   backendURL = "http://localhost:5000/api/"; // local backend
+// } else {
+//   backendURL = "https://msfcheekodepanchayatcommittee.fun/api/"; // production backend
+// }
 
+backendURL = "https://msfcheekodepanchayatcommittee.fun/api/";
 // 🟢 Axios instances
 const instance = axios.create({
   baseURL: backendURL,

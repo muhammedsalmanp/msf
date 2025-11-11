@@ -92,25 +92,12 @@ const __dirname = path.dirname(__filename);
 app.use("/uploads", express.static(path.join(__dirname, "public", "uploads")));
 
 // ✅ Define frontend URLs (not backend)
-const allowedOrigins = [
-  "http://localhost:5173", // Local frontend (Vite)
-  "http://localhost:3000", // Local frontend (CRA)
-  "https://msfcheekodepanchayat.online", // Production frontend
-  "https://www.msfcheekodepanchayat.online", // Production frontend (www)
-];
-
-// ✅ CORS setup with environment-safe handling
 app.use(
   cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (like curl or mobile)
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        console.warn("❌ Blocked by CORS:", origin);
-        callback(new Error("CORS not allowed for this origin"));
-      }
-    },
+    origin: [
+      "http://msfcheekodepanchayat.online", 
+      "http://www.msfcheekodepanchayat.online",
+    ],
     credentials: true,
   })
 );
