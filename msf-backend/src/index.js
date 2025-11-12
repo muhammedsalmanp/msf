@@ -21,16 +21,17 @@ dotenv.config();
 // Static files
 app.use("/uploads", express.static(path.join(__dirname, "public", "uploads")));
 
+// In your backend index.js
 app.use(
   cors({
     origin: [
-      "http://localhost:5173", // Development environment
-      "https://msfcheekodepanchayat.online", // Production Frontend (non-www)
-      "https://www.msfcheekodepanchayat.online", // Production Frontend (with www)
+      "https://msfcheekodepanchayat.online", 
+      "https://www.msfcheekodepanchayat.online",
+      // ... other allowed origins
     ],
     credentials: true,
   })
-);
+);;
 
 
 app.use(cookieParser());
