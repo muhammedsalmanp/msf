@@ -2,7 +2,6 @@ import Unit from '../../models/Unit.js';
 import Role from '../../models/Role.js';
 import User from '../../models/User.js';
 import unitUsers from '../../models/unitUsers.js'
-import unitUsers from '../../models/unitUsers.js';
 import { uploadFileToS3, deleteFileFromS3 } from '../../config/awsS3Helper.js';
 
 
