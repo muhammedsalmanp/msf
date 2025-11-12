@@ -23,7 +23,11 @@ app.use("/uploads", express.static(path.join(__dirname, "public", "uploads")));
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "www.msfcheekodepanchayat.online","https://www.msfcheekodepanchayat.online"],
+    origin: [
+      "http://localhost:5173", // Development environment
+      "https://msfcheekodepanchayat.online", // Production Frontend (non-www)
+      "https://www.msfcheekodepanchayat.online", // Production Frontend (with www)
+    ],
     credentials: true,
   })
 );
