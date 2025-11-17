@@ -48,7 +48,7 @@ const UnitDetailPage = () => {
   };
 
   if (error) return <div className="text-center py-10 text-red-500">{error}</div>;
-  if (!unit) return <div className="text-center py-10">Loading unit data...</div>;
+  if (!unit) return <div className="text-center py-10">Loading ward data...</div>;
 
 
   const pageVariants = {

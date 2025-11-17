@@ -84,10 +84,10 @@ const UnitList = () => {
       
       <div className="text-center mb-16">
         <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-          Our Units
+          Our Wards
         </h1>
         <p className="text-base md:text-lg text-gray-600">
-          Explore all the active units in our organization.
+          Explore all the active Wards in our organization.
         </p>
       </div>
 
@@ -113,11 +113,11 @@ const UnitList = () => {
         {loadingMore && (
           <div className="flex justify-center items-center gap-2 text-gray-600">
             <Loader2 className="w-5 h-5 animate-spin" />
-            <span>Loading more units...</span>
+            <span>Loading more Wards...</span>
           </div>
         )}
         {!loadingMore && page >= totalPages && units.length > 0 && (
-          <p className="text-gray-500">You've seen all the units.</p>
+          <p className="text-gray-500">You've seen all the Wards.</p>
         )}
       </div>
     </div>
