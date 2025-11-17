@@ -27,7 +27,7 @@ app.use(
     origin: [
       "https://msfcheekodepanchayat.online", 
       "https://www.msfcheekodepanchayat.online",
-      // ... other allowed origins
+       
     ],
     credentials: true,
   })
