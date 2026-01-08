@@ -125,14 +125,16 @@ const UnitDetailPage = () => {
               initial="hidden"
               animate="visible"
             >
-              {unit.programs.map((program) => (
-                <motion.div key={program._id} variants={itemVariants}>
-                  <ProgramCard
-                    program={program}
-                    onClick={() => handleCardClick(program)}
-                  />
-                </motion.div>
-              ))}
+              {[...unit.programs]
+          .sort((a, b) => new Date(b.date) - new Date(a.date))
+         .map((program) => (
+            <motion.div key={program._id} variants={itemVariants}>
+             <ProgramCard
+                 program={program}
+              onClick={() => handleCardClick(program)}
+              />
+            </motion.div>
+          ))}
             </motion.div>
           ) : (
             <div className="text-center py-10 border-2 border-dashed border-slate-300 rounded-xl bg-white mt-8">
