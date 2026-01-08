@@ -260,7 +260,7 @@ const AddProgramModal = ({
                                                     alt={`preview ${index}`}
                                                     className="w-full h-full object-cover rounded-md"
                                                 />
-                                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                               <div className="absolute inset-0 bg-black/40  flex items-center justify-center gap-2  opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                                                     <button
                                                         type="button"
                                                         // Use blob URL or existing URL for cropper source
