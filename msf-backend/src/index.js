@@ -27,7 +27,7 @@ app.use(
     origin: [
       "https://msfcheekodepanchayat.online", 
       "https://www.msfcheekodepanchayat.online",
-       
+       "http://localhost:5173", "http://localhost:5174"
     ],
     credentials: true,
   })
