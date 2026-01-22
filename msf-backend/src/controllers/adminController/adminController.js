@@ -4,7 +4,7 @@ import Program from '../../models/Program.js';
 import User from '../../models/User.js';
 import PanchayathJourney from '../../models/PanchayathJourney.js';
 import bcrypt from 'bcrypt';
-import { uploadFileToS3, deleteFileFromS3 } from '../../config/awsS3Helper.js';
+import { uploadFileToS3, deleteFileFromS3,getSignedFileUrl } from '../../config/awsS3Helper.js';
 
 
  //============ unit Condroler =================
@@ -136,10 +136,11 @@ export const addAdminMember = async (req, res) => {
     const hashedPassword = await bcrypt.hash(defaultPassword, 10); // Hashing the default password
 
     // 5️⃣ Create user
-    let profileImageUrl = "";
+    let profileImageKey = "";
     if (req.file) {
-      const { url } = await uploadFileToS3(`profile/`, req.file);
-      profileImageUrl = url;
+      const { key } = await uploadFileToS3(`profiles/`, req.file);
+      profileImageKey = key;
+
     } else {
       return res
         .status(400)
@@ -160,7 +161,7 @@ export const addAdminMember = async (req, res) => {
       username,
       phone: dummyPhone, 
       password: hashedPassword,
-      profileImage: profileImageUrl,
+      profileImageKey: profileImageKey,
       unit,
       roles,
       inChargeOfUnits: [],
@@ -216,8 +217,15 @@ export const getAllMembers = async (req, res) => {
       .populate('roles.role', 'title')
       .populate('inChargeOfUnits', 'name')
       .select('-password');
-
-    res.status(200).json(users);
+const usersWithUrls = await Promise.all(
+      users.map(async (u) => ({
+        ...u.toObject(),
+        profileImage: u.profileImageKey
+          ? await getSignedFileUrl(u.profileImageKey)
+          : null,
+      }))
+    );
+    res.status(200).json(usersWithUrls);
   } catch (error) {
     console.error('Error fetching members:', error);
     res.status(500).json({ message: 'Failed to fetch members' });
@@ -233,9 +241,16 @@ export const getAllMSFTeamMembers = async (req, res) => {
       .populate('roles.role', 'title')
       .populate('inChargeOfUnits', 'name')
       .populate('unit', 'name')
-      .select('name gender username phone profileImage roles inChargeOfUnits homeUnit isVerified');
-
-    res.status(200).json(users);
+      .select('name gender username phone profileImageKey roles inChargeOfUnits homeUnit isVerified');
+const usersWithUrls = await Promise.all(
+      users.map(async (u) => ({
+        ...u.toObject(),
+        profileImage: u.profileImageKey
+          ? await getSignedFileUrl(u.profileImageKey)
+          : null,
+      }))
+    );
+    res.status(200).json(usersWithUrls);
   } catch (error) {
     console.error('Error fetching main team members:', error);
     res.status(500).json({ message: 'Failed to fetch main team members' });
@@ -249,8 +264,16 @@ export const getAllTeam = async (req,res)=>{
     })
       .populate('roles.role', 'title')
       .populate('unit', 'name')
-      .select('name gender profileImage roles unit');
-    res.status(200).json(users);
+      .select('name gender profileImageKey roles unit');
+      const usersWithUrls = await Promise.all(
+      users.map(async (u) => ({
+        ...u.toObject(),
+        profileImage: u.profileImageKey
+          ? await getSignedFileUrl(u.profileImageKey)
+          : null,
+      }))
+    );
+    res.status(200).json(usersWithUrls);
   } catch (error) {
     console.error('Error fetching main team members:', error);
     res.status(500).json({ message: 'Failed to fetch main team members' });
@@ -266,9 +289,16 @@ export const getAllHrithaTeamMembers = async (req, res) => {
       .populate('roles.role', 'title')
       .populate('inChargeOfUnits', 'name')
       .populate('unit', 'name')
-      .select('name gender username profileImage roles inChargeOfUnits homeUnit isVerified');
-
-    res.status(200).json(users);
+      .select('name gender username profileImageKey roles inChargeOfUnits homeUnit isVerified');
+ const usersWithUrls = await Promise.all(
+      users.map(async (u) => ({
+        ...u.toObject(),
+        profileImage: u.profileImageKey
+          ? await getSignedFileUrl(u.profileImageKey)
+          : null,
+      }))
+    );
+    res.status(200).json(usersWithUrls);
   } catch (error) {
     console.error('Error fetching haritha team members:', error);
     res.status(500).json({ message: 'Failed to fetch haritha team members' });

@@ -6,7 +6,7 @@ import { login, logout } from "../Store/slices/userSlice";
 // 🟢 Base URL — switch automatically
 const backendURL =
   window.location.hostname === "localhost"
-    ? "http://localhost:5000/api/"
+    ? "http://localhost:3000/api/"
     : "https://msfcheekodepanchayatcommittee.fun/api/";
 
 // Axios instance
@@ -113,5 +113,4 @@ instance.interceptors.response.use(
 );
 
 export default instance;
-
 

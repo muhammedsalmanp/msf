@@ -21,12 +21,12 @@ const SlidePage = () => {
     fileInputRef.current.click();
   };
 
-  // ✅ Fetch slides from backend
+ 
   useEffect(() => {
     const fetchSlides = async () => {
       setLoadingSlides(true);
       try {
-        const response = await axios.get('/admin/slide'); // API route
+        const response = await axios.get('/admin/slide'); 
         console.log(response.data);
 
         setSlides(response.data);
@@ -40,7 +40,7 @@ const SlidePage = () => {
     fetchSlides();
   }, [dispatch]);
 
-  // ✅ Handle file input and show cropper
+  
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (file && file.type.startsWith('image/')) {
@@ -55,7 +55,7 @@ const SlidePage = () => {
     }
   };
 
-  // ✅ Handle cropped image upload
+ 
   const handleCroppedImage = async (blob) => {
     const file = new File([blob], `slide-${Date.now()}.jpg`, {
       type: 'image/jpeg',
@@ -70,8 +70,9 @@ const SlidePage = () => {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      setSlides((prev) => [...prev, response.data]);
-      dispatch(showNotification({ type: 'success', message: 'Slide uploaded successfully!' }));
+      setSlides((prev) => [...prev, response.data]); 
+      dispatch(showNotification({ type: 'success', message: 'Slide uploaded successfully!' }));  
+
     } catch (error) {
       dispatch(showNotification({ type: 'error', message: 'Upload failed!' }));
     } finally {

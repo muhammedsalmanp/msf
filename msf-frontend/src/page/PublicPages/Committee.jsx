@@ -19,6 +19,8 @@ const MemberCard = ({ member }) => {
     .filter((r) => r.scope === 'main' || r.scope === 'haritha') 
     .map((r) => r.role?.title)
     .join(', ');
+    console.log("PROFILE IMAGE:", member.profileImage);
+
 
   return (
     <div className="w-64 rounded-2xl overflow-hidden shadow-lg bg-white relative transition-transform hover:scale-105">
@@ -82,7 +84,13 @@ function Committee() {
     };
     fetchCommittees();
   }, [dispatch]); // Add dispatch to dependency array
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchCommittees();
+    }, 50 * 60 * 1000);
 
+    return () => clearInterval(interval);
+  }, []);
   // This render function is unchanged
   const renderGroup = (title, groupMembers) => {
     if (!groupMembers || groupMembers.length === 0) {

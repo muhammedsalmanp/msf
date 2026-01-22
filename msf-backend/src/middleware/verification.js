@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 export const verifyAccessToken = (req, res, next) => {
   console.log("🔑 Checking Authorization...");
   const authHeader = req.headers.authorization;
-  console.log(authHeader);
+  
 
   if (!authHeader) {
     console.log("❌ No Authorization header");
@@ -11,7 +11,6 @@ export const verifyAccessToken = (req, res, next) => {
   }
 
   const token = authHeader.split(' ')[1];
-  console.log("📦 Extracted Token:", token);
 
   jwt.verify(token, process.env.ACCESS_SECRET, (err, user) => {
     if (err) {
@@ -23,12 +22,8 @@ export const verifyAccessToken = (req, res, next) => {
         return res.status(401).json({ message: "TokenExpired" });
       }
 
-      // For any other error (e.g., bad signature), send 403
-      console.log("❌ Invalid Token", err.message);
       return res.status(403).json({ message: "InvalidToken" });
     }
-
-    console.log("✅ Token Verified, User:", user);
     req.user = user;
     next();
   });

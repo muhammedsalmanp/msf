@@ -2,7 +2,7 @@ import Unit from '../../models/Unit.js';
 import Role from '../../models/Role.js';
 import User from '../../models/User.js';
 import unitUsers from '../../models/unitUsers.js'
-import { uploadFileToS3, deleteFileFromS3 } from '../../config/awsS3Helper.js';
+import { uploadFileToS3, deleteFileFromS3,getSignedFileUrl } from '../../config/awsS3Helper.js';
 
 
 export const getMainCommittee = async (req, res) => {
@@ -13,9 +13,16 @@ export const getMainCommittee = async (req, res) => {
     })
       .populate('roles.role', 'title')
       .populate('unit', 'name')
-      .select('name gender profileImage roles unit');
-
-    res.status(200).json(users);
+      .select('name gender profileImageKey roles unit');
+      const usersWithSignedUrl = await Promise.all(
+      users.map(async (u) => ({
+        ...u.toObject(),
+        profileImage: u.profileImageKey
+          ? await getSignedFileUrl(u.profileImageKey)
+          : null,
+      }))
+    );
+    res.status(200).json(usersWithSignedUrl);
   } catch (error) {
     console.error('Error fetching main committee:', error);
     res.status(500).json({ message: 'Failed to fetch main committee' });
@@ -30,9 +37,17 @@ export const getHarithaCommittee = async (req, res) => {
     })
       .populate('roles.role', 'title')
       .populate('unit', 'name')
-      .select('name gender profileImage roles unit');
+      .select('name gender profileImageKey roles unit');
+    const usersWithSignedUrl = await Promise.all(
+      users.map(async (u) => ({
+        ...u.toObject(),
+        profileImage: u.profileImageKey
+          ? await getSignedFileUrl(u.profileImageKey)
+          : null,
+      }))
+    );
 
-    res.status(200).json(users);
+    res.status(200).json(usersWithSignedUrl);
   } catch (error) {
     console.error('Error fetching Haritha committee:', error);
     res.status(500).json({ message: 'Failed to fetch Haritha committee' });
