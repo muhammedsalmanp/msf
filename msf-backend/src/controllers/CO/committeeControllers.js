@@ -2,7 +2,7 @@ import Unit from '../../models/Unit.js';
 import Role from '../../models/Role.js';
 import User from '../../models/User.js';
 import unitUsers from '../../models/unitUsers.js'
-import { uploadFileToS3, deleteFileFromS3,getSignedFileUrl } from '../../config/awsS3Helper.js';
+import { uploadFileToS3, deleteFileFromS3, getSignedFileUrl } from '../../config/awsS3Helper.js';
 
 
 export const getMainCommittee = async (req, res) => {
@@ -14,7 +14,7 @@ export const getMainCommittee = async (req, res) => {
       .populate('roles.role', 'title')
       .populate('unit', 'name')
       .select('name gender profileImageKey roles unit');
-      const usersWithSignedUrl = await Promise.all(
+    const usersWithSignedUrl = await Promise.all(
       users.map(async (u) => ({
         ...u.toObject(),
         profileImage: u.profileImageKey
@@ -88,7 +88,7 @@ export const updateCommitteeAndUserRoles = async (req, res) => {
 
     await Unit.findByIdAndUpdate(unitId, { $set: updateField }, { new: true });
 
-   
+
     for (const r of rolesToUpdate) {
       if (!r.userId) continue;
 
@@ -96,7 +96,7 @@ export const updateCommitteeAndUserRoles = async (req, res) => {
 
       if (!user) continue;
 
-     const hasMainRole = user.roles.some((role) => role.scope === "main");
+      const hasMainRole = user.roles.some((role) => role.scope === "main");
       if (hasMainRole) continue;
 
       const existingUnitRoleIndex = user.roles.findIndex(
@@ -156,28 +156,41 @@ export const getmsfCommitteeUsersByUnit = async (req, res) => {
   try {
     const { unitId } = req.params;
     const committeeType = "msf";
+
     const role = await Role.findOne({
-      name: new RegExp('^' + committeeType + '$', 'i')
+      name: new RegExp("^" + committeeType + "$", "i"),
     }).lean();
+
     if (!role) {
-      return res.status(404).json({ message: `Committee type '${committeeType}' not found.` });
+      return res
+        .status(404)
+        .json({ message: `Committee type '${committeeType}' not found.` });
     }
 
     const users = await User.find({
       unit: unitId,
-      "roles.role": role._id
+      "roles.role": role._id,
     })
       .populate("roles.role", "name")
-      .select("name gender profileImage roles")
+      .select("name gender profileImageKey roles")
       .lean();
 
     if (!users || users.length === 0) {
       return res.status(404).json({
-        message: `No users found for committee '${committeeType}' in this unit.`
+        message: `No users found for committee '${committeeType}' in this unit.`,
       });
     }
 
-    res.status(200).json(users);
+    const usersWithSignedUrl = await Promise.all(
+      users.map(async (u) => ({
+        ...u,
+        profileImage: u.profileImageKey
+          ? await getSignedFileUrl(u.profileImageKey)
+          : null,
+      }))
+    );
+
+    res.status(200).json(usersWithSignedUrl);
   } catch (error) {
     console.error("Error fetching committee users by unit:", error);
     res.status(500).json({ message: "Server error fetching users." });
@@ -186,49 +199,66 @@ export const getmsfCommitteeUsersByUnit = async (req, res) => {
 
 export const getharithaCommitteeUsersByUnit = async (req, res) => {
   try {
-
     const { unitId } = req.params;
-    const committeeType = "haritha"
+    const committeeType = "haritha";
+
     const role = await Role.findOne({
-      name: new RegExp('^' + committeeType + '$', 'i')
+      name: new RegExp("^" + committeeType + "$", "i"),
     }).lean();
+
     if (!role) {
-      return res.status(404).json({ message: `Committee type '${committeeType}' not found.` });
+      return res
+        .status(404)
+        .json({ message: `Committee type '${committeeType}' not found.` });
     }
 
     const users = await User.find({
       unit: unitId,
-      "roles.role": role._id
+      "roles.role": role._id,
     })
       .populate("roles.role", "name")
-      .select("name gender profileImage roles")
+      .select("name gender profileImageKey roles")
       .lean();
 
     if (!users || users.length === 0) {
       return res.status(404).json({
-        message: `No users found for committee '${committeeType}' in this unit.`
+        message: `No users found for committee '${committeeType}' in this unit.`,
       });
     }
 
-    res.status(200).json(users);
+    const usersWithSignedUrl = await Promise.all(
+      users.map(async (u) => ({
+        ...u,
+        profileImage: u.profileImageKey
+          ? await getSignedFileUrl(u.profileImageKey)
+          : null,
+      }))
+    );
+
+    res.status(200).json(usersWithSignedUrl);
   } catch (error) {
     console.error("Error fetching committee users by unit:", error);
     res.status(500).json({ message: "Server error fetching users." });
   }
 };
 
+
 export const getCommitteeUsersByUnit = async (req, res) => {
   try {
     const { unitId, committeeType } = req.params;
 
     if (!unitId || !committeeType) {
-      return res.status(400).json({ message: "Missing unit ID or committee type." });
+      return res
+        .status(400)
+        .json({ message: "Missing unit ID or committee type." });
     }
 
     const scopeToMatch = committeeType.toLowerCase();
 
     if (scopeToMatch !== "msf" && scopeToMatch !== "haritha") {
-      return res.status(400).json({ message: `Invalid committee type: ${committeeType}` });
+      return res
+        .status(400)
+        .json({ message: `Invalid committee type: ${committeeType}` });
     }
 
     const query = {
@@ -236,26 +266,35 @@ export const getCommitteeUsersByUnit = async (req, res) => {
       roles: { $elemMatch: { scope: scopeToMatch } },
     };
 
-    const users = await unitUsers.find(query)
-      .select("name gender profileImage roles")
+    const users = await unitUsers
+      .find(query)
+      .select("name gender profileImageKey roles")
       .populate("roles.role", "title")
       .lean();
 
-    const filteredUsers = users.map(user => {
-      return {
-        ...user,
-        roles: user.roles.filter(roleEntry => roleEntry.scope === scopeToMatch)
-      };
-    });
+    if (!users || users.length === 0) {
+      return res.status(404).json({
+        message: `No users found for committee '${committeeType}' in this unit.`,
+      });
+    }
 
+    const filteredUsers = await Promise.all(
+      users.map(async (u) => ({
+        ...u,
+        profileImage: u.profileImageKey
+          ? await getSignedFileUrl(u.profileImageKey)
+          : null,
+        roles: u.roles.filter((r) => r.scope === scopeToMatch),
+      }))
+    );
 
     return res.status(200).json(filteredUsers);
-
   } catch (error) {
     console.error("Error fetching committee users:", error);
     res.status(500).json({ message: "Server error fetching users." });
   }
 };
+
 
 
 //===============add, edit, Delete committee=============
@@ -351,7 +390,6 @@ export const addUserToCommittee = async (req, res) => {
 
 export const updateUserInCommittee = async (req, res) => {
   try {
-    console.log("Received body:", req.body);
     const { userId } = req.params;
     const {
       name,
@@ -464,14 +502,28 @@ export const updateUserInCommittee = async (req, res) => {
 
     await user.save();
 
-    const populatedUser = await unitUsers.findById(userId)
-      .populate("roles.role", "title");
+    // Fetch the user again using the model to populate correctly
+   const populatedUser = await unitUsers.findById(userId)
+  .populate("roles.role", "title");
 
+let signedProfileImage = null;
 
-    res.status(200).json({
-      message: "User updated successfully.",
-      user: populatedUser,
-    });
+if (populatedUser?.profileImageKey) {
+  signedProfileImage = await getSignedFileUrl(populatedUser.profileImageKey);
+}
+
+const userData = {
+  ...populatedUser.toObject(),
+  profileImage: signedProfileImage, // ✅ signed url
+};
+
+console.log("UPDATED USER RESPONSE:", userData);
+
+res.status(200).json({
+  message: "User updated successfully.",
+  user: userData,
+});
+
 
   } catch (error) {
     console.error("Error updating user:", error);
@@ -588,7 +640,7 @@ export const changeUserRoleInCommittee = async (req, res) => {
 export const deleteUserFromCommittee = async (req, res) => {
   try {
     const { userId } = req.params;
-     
+
     const user = await unitUsers.findById(userId).populate("roles.role");
     if (!user) {
       return res.status(404).json({ message: "User not found." });
@@ -661,50 +713,43 @@ export const deleteUserFromCommittee = async (req, res) => {
 //==============Unit Controllers====================
 
 export const getCommitteeUsers = async (req, res) => {
+  try {
+    const { committeeType } = req.params;
+    const unitId = req.user.id;
 
-    try {
-        
-        console.log("testring the erroroor ",req.params,req.user);
-        
-        const { committeeType } = req.params;
-        const unitId = req.user.id;
-
-        console.log("Unit:", unitId, "Committee:", committeeType);
-
-        if (!unitId || !committeeType) {
-            return res.status(400).json({ message: "Missing unit ID or committee type." });
-        }
-
-        const scopeToMatch = committeeType.toLowerCase();
-
-        if (scopeToMatch !== "msf" && scopeToMatch !== "haritha") {
-            return res.status(400).json({ message: `Invalid committee type: ${committeeType}` });
-        }
-
-        const query = {
-            unit: unitId,
-            roles: { $elemMatch: { scope: scopeToMatch } },
-        };
-
-        const users = await unitUsers.find(query)
-            .select("name gender profileImage roles")
-            .populate("roles.role", "title")
-            .lean();
-
-        const filteredUsers = users.map(user => {
-            return {
-                ...user,
-                roles: user.roles.filter(roleEntry => roleEntry.scope === scopeToMatch)
-            };
-        });
-
-        return res.status(200).json(filteredUsers);
-
-    } catch (error) {
-
-        console.error("Error fetching committee users:", error);
-
-        res.status(500).json({ message: "Server error fetching users." });
-
+    if (!unitId || !committeeType) {
+      return res.status(400).json({ message: "Missing unit ID or committee type." });
     }
-};   
+
+    const scopeToMatch = committeeType.toLowerCase();
+
+    if (scopeToMatch !== "msf" && scopeToMatch !== "haritha") {
+      return res.status(400).json({ message: `Invalid committee type: ${committeeType}` });
+    }
+
+    const query = {
+      unit: unitId,
+      roles: { $elemMatch: { scope: scopeToMatch } },
+    };
+
+    const users = await unitUsers.find(query)
+      .select("name gender profileImageKey roles") // ✅ changed
+      .populate("roles.role", "title")
+      .lean();
+
+    const filteredUsers = await Promise.all(
+      users.map(async (user) => ({
+        ...user,
+        profileImage: user.profileImageKey
+          ? await getSignedFileUrl(user.profileImageKey)
+          : null,
+        roles: user.roles.filter((roleEntry) => roleEntry.scope === scopeToMatch),
+      }))
+    );
+
+    return res.status(200).json(filteredUsers);
+  } catch (error) {
+    console.error("Error fetching committee users:", error);
+    res.status(500).json({ message: "Server error fetching users." });
+  }
+};

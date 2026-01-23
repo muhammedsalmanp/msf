@@ -1,41 +1,42 @@
 import User from "../../models/User.js";
 import Unit from "../../models/Unit.js";
-import Role from "../../models/Role.js";     
+import Role from "../../models/Role.js";
 import unitUsers from "../../models/unitUsers.js";
-import { uploadFileToS3, deleteFileFromS3 } from "../../config/awsS3Helper.js"
+import { uploadFileToS3, deleteFileFromS3, getSignedFileUrl } from "../../config/awsS3Helper.js"
 
 export const getmsfCommitteeUsersByUnit = async (req, res) => {
   try {
-    // 1. Get both committeeType and unitId from the request parameters
     const { unitId } = req.params;
     const committeeType = "msf";
-    // 2. Find the role that matches the committeeType (e.g., 'Haritha' or 'MSF')
-    // We use a case-insensitive regex to make it flexible
+
     const role = await Role.findOne({
-      name: new RegExp('^' + committeeType + '$', 'i')
+      name: new RegExp("^" + committeeType + "$", "i"),
     }).lean();
 
-    // If no role matches the committeeType, return an error
     if (!role) {
       return res.status(404).json({ message: `Committee type '${committeeType}' not found.` });
     }
 
-    // 3. Find users who belong to the specific unit AND have the specific role
     const users = await User.find({
       unit: unitId,
-      "roles.role": role._id // Filter by the role's ID
+      "roles.role": role._id,
     })
       .populate("roles.role", "name")
-      .select("name gender profileImage roles")
+      .select("name gender profileImageKey roles")
       .lean();
 
     if (!users || users.length === 0) {
-      return res.status(404).json({
-        message: `No users found for committee '${committeeType}' in this unit.`
-      });
+      return res.status(404).json({ message: `No users found for committee '${committeeType}' in this unit.` });
     }
 
-    res.status(200).json(users);
+    const usersWithSignedUrl = await Promise.all(
+      users.map(async (u) => ({
+        ...u,
+        profileImage: u.profileImageKey ? await getSignedFileUrl(u.profileImageKey) : null,
+      }))
+    );
+
+    res.status(200).json(usersWithSignedUrl);
   } catch (error) {
     console.error("Error fetching committee users by unit:", error);
     res.status(500).json({ message: "Server error fetching users." });
@@ -44,41 +45,43 @@ export const getmsfCommitteeUsersByUnit = async (req, res) => {
 
 export const getharithaCommitteeUsersByUnit = async (req, res) => {
   try {
-    // 1. Get both committeeType and unitId from the request parameters
     const { unitId } = req.params;
-    const committeeType = "haritha"
-    // 2. Find the role that matches the committeeType (e.g., 'Haritha' or 'MSF')
-    // We use a case-insensitive regex to make it flexible
+    const committeeType = "haritha";
+
     const role = await Role.findOne({
-      name: new RegExp('^' + committeeType + '$', 'i')
+      name: new RegExp("^" + committeeType + "$", "i"),
     }).lean();
 
-    // If no role matches the committeeType, return an error
     if (!role) {
       return res.status(404).json({ message: `Committee type '${committeeType}' not found.` });
     }
 
-    // 3. Find users who belong to the specific unit AND have the specific role
     const users = await User.find({
       unit: unitId,
-      "roles.role": role._id // Filter by the role's ID
+      "roles.role": role._id,
     })
       .populate("roles.role", "name")
-      .select("name gender profileImage roles")
+      .select("name gender profileImageKey roles")
       .lean();
 
     if (!users || users.length === 0) {
-      return res.status(404).json({
-        message: `No users found for committee '${committeeType}' in this unit.`
-      });
+      return res.status(404).json({ message: `No users found for committee '${committeeType}' in this unit.` });
     }
 
-    res.status(200).json(users);
+    const usersWithSignedUrl = await Promise.all(
+      users.map(async (u) => ({
+        ...u,
+        profileImage: u.profileImageKey ? await getSignedFileUrl(u.profileImageKey) : null,
+      }))
+    );
+
+    res.status(200).json(usersWithSignedUrl);
   } catch (error) {
     console.error("Error fetching committee users by unit:", error);
     res.status(500).json({ message: "Server error fetching users." });
   }
 };
+
 
 export const updateCommitteeAndUserRoles = async (req, res) => {
   try {
@@ -107,51 +110,37 @@ export const updateCommitteeAndUserRoles = async (req, res) => {
       { roleName: "jointSecretaries", userIds: updatedCommittee.jointSecretaries || [] },
     ];
 
-    // ✅ 1. Update unit committee
     const updateField =
       committeeType === "haritha"
         ? { harithaCommittee: updatedCommittee }
         : { msfCommittee: updatedCommittee };
 
     await Unit.findByIdAndUpdate(unitId, { $set: updateField }, { new: true });
-
-    // ✅ 2. Update User roles
-    // Loop for single-role positions
     for (const r of rolesToUpdate) {
       if (!r.userId) continue;
 
       const user = await User.findById(r.userId);
 
       if (!user) continue;
-
-      // Check if the user has a main role in this unit, skip if main
       const hasMainRole = user.roles.some((role) => role.scope === "main");
       if (hasMainRole) continue;
-
-      // Add or update role in User.roles
       const existingUnitRoleIndex = user.roles.findIndex(
         (role) => role.scope === "unit" && role.role.toString() === r.userId
       );
 
       if (existingUnitRoleIndex === -1) {
-        // Push new role
         user.roles.push({ role: r.userId, scope: "unit" });
       } else {
-        // Already exists, do nothing or update if needed
       }
 
       await user.save();
     }
-
-    // Loop for multi-role positions
     for (const group of multiRoles) {
       for (const uid of group.userIds) {
         const user = await User.findById(uid);
         if (!user) continue;
         const hasMainRole = user.roles.some((role) => role.scope === "main");
         if (hasMainRole) continue;
-
-        // Check if already has this unit role
         const exists = user.roles.find(
           (role) => role.scope === "unit" && role.role.toString() === uid
         );
@@ -162,13 +151,12 @@ export const updateCommitteeAndUserRoles = async (req, res) => {
         }
       }
     }
-
     const populatedUnit = await Unit.findById(unitId)
-      .populate(`${committeeType}Committee.president`, "name profileImage gender")
-      .populate(`${committeeType}Committee.secretary`, "name profileImage gender")
-      .populate(`${committeeType}Committee.treasurer`, "name profileImage gender")
-      .populate(`${committeeType}Committee.vicePresidents`, "name profileImage gender")
-      .populate(`${committeeType}Committee.jointSecretaries`, "name profileImage gender");
+      .populate(`${committeeType}Committee.president`, "name profileImageKey gender")
+      .populate(`${committeeType}Committee.secretary`, "name profileImageKey gender")
+      .populate(`${committeeType}Committee.treasurer`, "name profileImageKey gender")
+      .populate(`${committeeType}Committee.vicePresidents`, "name profileImageKey gender")
+      .populate(`${committeeType}Committee.jointSecretaries`, "name profileImageKey gender");
 
     res.status(200).json({
       message: `${committeeType.toUpperCase()} committee updated successfully`,
@@ -190,28 +178,21 @@ export const getCommitteeUsersByUnit = async (req, res) => {
       return res.status(400).json({ message: "Missing unit ID or committee type." });
     }
 
-    // Convert committeeType to lowercase for consistent matching
     const scopeToMatch = committeeType.toLowerCase();
 
-    // Validate committeeType if necessary (optional, but good practice)
     if (scopeToMatch !== "msf" && scopeToMatch !== "haritha") {
       return res.status(400).json({ message: `Invalid committee type: ${committeeType}` });
     }
 
-    // Build the query
     const query = {
       unit: unitId,
-      // Use $elemMatch to find users where at least one role element matches the scope
       roles: { $elemMatch: { scope: scopeToMatch } },
     };
 
     const users = await unitUsers.find(query)
-      .select("name gender profileImage roles") // Select desired fields
-      .populate("roles.role", "title") // Populate the role title
-      .lean(); // Use lean for performance if you don't need Mongoose documents
-
-    // Filter the roles array in the result *after* fetching from DB
-    // This ensures only the relevant role scope is sent back if a user has multiple roles
+      .select("name gender profileImage roles")
+      .populate("roles.role", "title")
+      .lean();
     const filteredUsers = users.map(user => {
       return {
         ...user,
@@ -264,7 +245,7 @@ export const addUserToCommittee = async (req, res) => {
 
     if (req.file) {
       const uploadResult = await uploadFileToS3("profiles/", req.file);
-      profileImage = uploadResult.url;
+      profileImage = null;
       profileImageKey = uploadResult.key;
     }
 
@@ -299,14 +280,23 @@ export const addUserToCommittee = async (req, res) => {
 
     await unit.save();
 
-    const populatedUser = await unitUsers.findById(newUser._id)
+    // Fetch the user again using the model to populate correctly
+    const populatedUser = await unitUsers.findById(userId)
       .populate("roles.role", "title");
 
+    let signedProfileImage = null;
+    if (populatedUser.profileImageKey) {
+      signedProfileImage = await getSignedFileUrl(populatedUser.profileImageKey);
+    }
 
-    res.status(201).json({
-      message: "User added successfully.",
-      user: populatedUser, 
+    res.status(200).json({
+      message: "User updated successfully.",
+      user: {
+        ...populatedUser.toObject(),
+        profileImage: signedProfileImage, // ✅ this is what frontend should use
+      },
     });
+
 
   } catch (error) {
     console.error("Error adding user:", error);
@@ -319,17 +309,16 @@ export const addUserToCommittee = async (req, res) => {
 
 export const updateUserInCommittee = async (req, res) => {
   try {
-    console.log("Received body:", req.body); // Keep this for debugging if needed
+    console.log("Received body:", req.body);
     const { userId } = req.params;
     const {
       name,
-      gender, // Removed default here, rely on frontend or add validation
+      gender,
       role: newRole,
       unitId,
       committeeType,
     } = req.body;
 
-    // Optional: Add explicit check for gender if needed
     if (!gender) {
       return res.status(400).json({ message: "Gender field is missing." });
     }
@@ -338,13 +327,11 @@ export const updateUserInCommittee = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields." });
     }
 
-    // 1. Find the user to be updated
     const user = await unitUsers.findById(userId).populate("roles.role");
     if (!user) {
       return res.status(404).json({ message: "User not found." });
     }
 
-    // 2. Handle Profile Image Update (Keep your existing S3 logic)
     let profileImage = user.profileImage;
     let profileImageKey = user.profileImageKey;
 
@@ -440,13 +427,25 @@ export const updateUserInCommittee = async (req, res) => {
     await user.save();
 
     // Fetch the user again *using the model* to populate correctly
-    const populatedUser = await unitUsers.findById(userId) // Use userId here
+    const populatedUser = await unitUsers.findById(userId)
       .populate("roles.role", "title");
-    // ✅ --- END OF FIX ---
-
-    res.status(200).json({ // Use 200 OK for update
-      message: "User updated successfully.", // Correct message
-      user: populatedUser, // <-- Send the correctly populated user
+    
+    let signedProfileImage = null;
+    
+    if (populatedUser?.profileImageKey) {
+      signedProfileImage = await getSignedFileUrl(populatedUser.profileImageKey);
+    }
+    
+    const userData = {
+      ...populatedUser.toObject(),
+      profileImage: signedProfileImage, // ✅ signed url
+    };
+    
+    console.log("UPDATED USER RESPONSE:", userData);
+    
+    res.status(200).json({
+      message: "User updated successfully.",
+      user: userData,
     });
 
   } catch (error) {

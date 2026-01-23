@@ -22,7 +22,7 @@ const ProgramCard = ({ program, onSelect, onEdit, onDelete }) => {
     >
       <div className="aspect-video bg-slate-200 overflow-hidden relative">
         <img
-          src={program.image?.[0] || 'https://via.placeholder.com/400x225.png?text=No+Image'}
+          src={program.imageUrls?.[0] || 'https://via.placeholder.com/400x225.png?text=No+Image'}
           alt={program.name}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
         />

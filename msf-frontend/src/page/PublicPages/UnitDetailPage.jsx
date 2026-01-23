@@ -26,7 +26,7 @@ const UnitDetailPage = () => {
       setError(null);
       
       try {
-        const response = await axios.get(`/user/unit-details/${unitId}`);
+        const response = await axios.get(`/user/unit-details/${unitId}`); 
         setUnit(response.data);
       } catch (err) {
         setError("Error fetching unit details.");
@@ -120,7 +120,7 @@ const UnitDetailPage = () => {
 
           {unit.programs && unit.programs.length > 0 ? (
             <motion.div
-              className="grid grid-cols-1 md:grid-cols-2 gap-8"
+              className="grid grid-cols-1 md:grid-cols-3 gap-8"
               variants={listVariants}
               initial="hidden"
               animate="visible"

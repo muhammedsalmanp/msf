@@ -181,13 +181,12 @@ const EditUserModal = ({ memberToEdit, unitId, committeeType, onClose, onSubmit 
     formData.append("committeeType", committeeType);
 
     if (croppedImageFile) {
-      formData.append("profileImage", croppedImageFile, "profile.jpg");
+      formData.append("profileImage", croppedImageFile, "profile.jpg");  
     }
 
     dispatch(setLoading(true));
 
     try {
-      onClose();
       const res = await axios.put(`/admin/update/${memberToEdit._id}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -197,6 +196,9 @@ const EditUserModal = ({ memberToEdit, unitId, committeeType, onClose, onSubmit 
         type: "success",
         message: "User updated successfully!",
       }));
+      console.log(res.data.user.profileImage);
+      
+      onClose();
     } catch (error) {
       const errorMessage = error.response?.data?.message || "Failed to update user!";
       dispatch(showNotification({

@@ -39,7 +39,8 @@ const unitSchema = new mongoose.Schema({
       name: { type: String, required: true },
       date: { type: Date, required: true },
       description: { type: String, required: true },
-      image: [String],
+      imageUrls: [{ type: String }], // ✅ show in frontend
+    imageKeys: [{ type: String }], // ✅ delete from S3
       createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     },
   ],

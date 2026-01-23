@@ -3,12 +3,12 @@ import React from "react";
 const ProgramCard = ({ program, onClick }) => (
   <div
     onClick={onClick}
-    className="cursor-pointer bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
+    className="cursor-pointer bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow "
   >
     <div className="aspect-video bg-gray-100 flex items-center justify-center">
-      {program.image && program.image.length > 0 ? (
+      {program.imageUrls && program.imageUrls.length > 0 ? (
         <img
-          src={program.image[0]}
+          src={program.imageUrls[0]}
           alt={program.name}
           className="w-full h-full object-cover"
         />

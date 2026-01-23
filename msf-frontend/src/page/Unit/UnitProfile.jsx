@@ -160,15 +160,17 @@ const UnitProfile = () => {
         formData.append('date', date);
         formData.append('description', description);
 
-        newFiles.forEach(file => formData.append('images', file));
+        formData.append("existingImages", JSON.stringify(submissionData.existingImages || []));
 
-        // Use the editingProgram state (set when opening modal) to know if we are editing
-        if (editingProgram) {
-            // existingImagesToKeep and imagesToDelete come directly from submissionData
-            // existingImagesToKeep should already be an array of strings (keys/URLs)
-            formData.append('existingImages', JSON.stringify(existingImagesToKeep));
-            formData.append('imagesToDelete', JSON.stringify(imagesToDelete));
-        }
+    // ✅ send delete keys list
+    formData.append("imagesToDelete", JSON.stringify(submissionData.imagesToDelete || []));
+
+    // ✅ send new files
+    if (submissionData.newFiles?.length > 0) {
+      submissionData.newFiles.forEach((file) => {
+        formData.append("images", file); // must match multer field name
+      });
+    }
 
         dispatch(setLoading(true));
         handleCloseModal(); // Close modal after getting data

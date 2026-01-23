@@ -31,7 +31,7 @@ router.get('/slide', getSlides);
 router.post('/slide/upload', upload.single('image'), uploadSlide);
 router.delete('/slide/:id', deleteSlide);
 
-//=============Unit==================
+//=============Unit==================        
 router.post('/add-units', addUnit);
 router.get('/getUnits', getUnits);
 router.get('/units', getUnits);

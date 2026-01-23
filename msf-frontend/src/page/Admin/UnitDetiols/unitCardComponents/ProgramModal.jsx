@@ -4,7 +4,8 @@ import { X, ChevronsLeft, ChevronsRight } from "lucide-react";
 
 const ProgramModal = ({ program, onClose }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const images = program.image || [];
+ const images = program.imageUrls || [];
+
 
   const nextImage = () => setCurrentImageIndex((prev) => (prev + 1) % images.length);
   const prevImage = () => setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);

@@ -45,7 +45,7 @@ export default function Notification() {
   return (
     <div
   className={`
-    fixed top-20 sm:right-6 right-2 z-50 
+    fixed top-20 sm:right-6 right-2 z-[9999] 
     w-[90vw] sm:w-80 max-w-sm 
     p-3 sm:p-4 rounded-lg shadow-lg text-white 
     transform transition-all duration-500 ease-in-out

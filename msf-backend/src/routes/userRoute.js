@@ -31,7 +31,7 @@ router.get('/haritha-committee', cacheMiddleware(3600), getHarithaCommittee);
 router.get('/journey', cacheMiddleware(3600), getJourney);
 router.get('/units', cacheMiddleware(3600), getUnits);
 router.get('/unit-details/:id', cacheMiddleware(3600), getUnitDetails);
-router.get('/unit-committee/:id/:type', cacheMiddleware(3600), getUnitCommittee);
+router.get('/unit-committee/:id/:type', cacheMiddleware(3600), getUnitCommittee);    
 
 
 //=============Profile============

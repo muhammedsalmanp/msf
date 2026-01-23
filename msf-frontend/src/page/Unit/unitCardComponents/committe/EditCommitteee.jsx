@@ -12,7 +12,7 @@ const EditCommitteee = ({ unitId, committeeType, onBack }) => {
       setLoading(true);
       try {
         // This endpoint should return all users belonging to the unit
-        const res = await axios.get(`/admin/units/${unitId}/users`);
+        const res = await axios.get(`/admin/units/${unitId}/users`);   
         setUsers(res.data);
       } catch (err) {
         console.error("Failed to load users:", err);
@@ -22,7 +22,6 @@ const EditCommitteee = ({ unitId, committeeType, onBack }) => {
     };
     fetchUsers();
   }, [unitId]);
-
   return (
     <div className="bg-slate-50 font-sans  p-4 sm:p-6  lg:p-8 mb-10">
       <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-lg p-6 sm:p-8">

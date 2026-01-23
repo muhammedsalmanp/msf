@@ -22,22 +22,24 @@ const AddProgramModal = ({
 
     // --- Effect to load existing images on EDIT mode ---
     useEffect(() => {
-        // Reset state when modal opens/changes mode
         setSelectedImages([]);
         setImagesToDelete([]);
         setImageError('');
         setCroppingImage(null);
 
-        if (mode === 'edit' && initialData && Array.isArray(initialData.image)) {
-            const existingImages = initialData.image.map(imageUrl => ({
-                url: imageUrl,
-                key: imageUrl, // Use URL as key
-                preview: imageUrl, // Use URL as preview source
-                status: 'existing', // Mark as existing
-            }));
-            setSelectedImages(existingImages);
-        }
-    }, [mode, initialData]); // Rerun when mode or initialData changes
+       if (mode === "edit" && initialData && Array.isArray(initialData.imageUrls)) {
+  const existingImages = initialData.imageUrls.map((url, i) => ({
+    url,
+    key: initialData.imageKeys?.[i],   // ✅ real S3 key
+    preview: url,
+    status: "existing",
+  }));
+
+  setSelectedImages(existingImages);
+}
+
+        
+    }, [mode, initialData]);
 
     // --- Second useEffect REMOVED ---
 
@@ -168,18 +170,28 @@ const AddProgramModal = ({
         e.preventDefault();
 
         // Prepare data for the parent onSubmit prop
-        const submissionData = {
-            // Include text data received via 'data' prop
-            name: data.name,
-            date: data.date,
-            description: data.description,
+       const submissionData = {
+  name: data.name,
+  date: data.date,
+  description: data.description,
 
-            // Get final image lists from internal state
-            newFiles: selectedImages.filter(img => img.status === 'new').map(img => img.file),
-            // Send back only the keys (URLs) of existing images that were NOT deleted
-            existingImagesToKeep: selectedImages.filter(img => img.status === 'existing').map(img => img.key),
-            imagesToDelete: imagesToDelete, // Send the list of keys to delete
-        };
+  // new uploaded files
+  newFiles: selectedImages
+    .filter((img) => img.status === "new")
+    .map((img) => img.file),
+
+  // keep existing images (must send url + key)
+  existingImages: selectedImages
+    .filter((img) => img.status === "existing")
+    .map((img) => ({
+      url: img.url,      // signed url or normal url
+      key: img.key,      // ✅ S3 key like: programs/xxxx.webp
+    })),
+
+  // delete keys only
+  imagesToDelete: imagesToDelete.filter(Boolean), // ✅ only keys
+};
+
 
         // Call the actual submit function passed from the parent
         onSubmit(submissionData);
@@ -260,7 +272,7 @@ const AddProgramModal = ({
                                                     alt={`preview ${index}`}
                                                     className="w-full h-full object-cover rounded-md"
                                                 />
-                                               <div className="absolute inset-0 bg-black/40  flex items-center justify-center gap-2  opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                                                <div className="absolute inset-0 bg-black/40  flex items-center justify-center gap-2  opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                                                     <button
                                                         type="button"
                                                         // Use blob URL or existing URL for cropper source

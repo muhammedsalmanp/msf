@@ -8,7 +8,8 @@ const ProgramModal = ({ selectedProgram, setIsModalOpen }) => {
   const [isImageViewerOpen, setIsImageViewerOpen] = useState(false);
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
 
-  const images = selectedProgram.image || [];
+  const images = selectedProgram.imageUrls || [];
+
 
   const next = useCallback(() => {
     setCurrentImageIndex((prev) =>
@@ -56,13 +57,13 @@ const ProgramModal = ({ selectedProgram, setIsModalOpen }) => {
     <>
       {/* Overlay */}
       <div
-        className={`fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity duration-300 ${isAnimatingOut ? "opacity-0" : "opacity-100"
+        className={`fixed inset-0 z-100 bg-black/50 backdrop-blur-sm transition-opacity duration-300 ${isAnimatingOut ? "opacity-0" : "opacity-100"
           }`}
         onClick={closeModal}
       ></div>
 
       {/* Vertical Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-101 flex items-center justify-center p-4">
         <div
           onClick={(e) => e.stopPropagation()}
           className={`bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden transition-all duration-300 ${isAnimatingOut ? "opacity-0 scale-95" : "opacity-100 scale-100"
@@ -138,7 +139,7 @@ const ProgramModal = ({ selectedProgram, setIsModalOpen }) => {
       </div>
 
       {isImageViewerOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90">
+        <div className="fixed inset-0 z-[103] flex items-center justify-center bg-black/90">
           <img
             src={images[currentImageIndex]}
             alt="Full View"
