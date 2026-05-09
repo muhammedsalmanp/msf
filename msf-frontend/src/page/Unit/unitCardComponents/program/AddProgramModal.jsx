@@ -1,0 +1,367 @@
+import React, { useState, useEffect } from 'react';
+import { motion } from "framer-motion";
+import { X, Trash2, Crop, FileImage } from "lucide-react";
+import imageCompression from 'browser-image-compression';
+import ImageCropperModal from '../ImageCropperModal';
+
+const AddProgramModal = ({
+    mode = 'add',
+    initialData = null,
+    onClose,
+    onSubmit,
+    data = { name: '', date: '', description: '' },
+    onFormChange,
+    programList = [],
+}) => {
+    // --- Internal state SOLELY for managing images within this modal ---
+    const [selectedImages, setSelectedImages] = useState([]);
+    const [imagesToDelete, setImagesToDelete] = useState([]); // Keep track of images marked for deletion
+
+    const [croppingImage, setCroppingImage] = useState(null);
+    const [imageError, setImageError] = useState('');
+
+    // --- Effect to load existing images on EDIT mode ---
+    useEffect(() => {
+        setSelectedImages([]);
+        setImagesToDelete([]);
+        setImageError('');
+        setCroppingImage(null);
+
+        if (mode === "edit" && initialData && Array.isArray(initialData.imageUrls)) {
+            const existingImages = initialData.imageUrls.map((url, i) => ({
+                url,
+                key: initialData.imageKeys?.[i],   // ✅ real S3 key
+                preview: url,
+                status: "existing",
+            }));
+
+            setSelectedImages(existingImages);
+        }
+
+
+    }, [mode, initialData]);
+
+    // --- Second useEffect REMOVED ---
+
+    const handleFileChange = async (e) => {
+        setImageError('');
+        const files = Array.from(e.target.files);
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+
+        if (selectedImages.length + files.length > 10) {
+            setImageError('You can only have a maximum of 10 images.');
+            return;
+        }
+
+        const compressionOptions = {
+            maxSizeMB: 1,
+            maxWidthOrHeight: 1920,
+            useWebWorker: true,
+            fileType: 'image/webp',
+        };
+
+        const newImages = [];
+        for (const file of files) {
+            if (!allowedTypes.includes(file.type)) {
+                setImageError(`File type not supported: ${file.name}. Skipping this file.`);
+                continue;
+            }
+
+            const isDuplicate = selectedImages.some(img =>
+                img.file && (img.file.name === file.name && img.file.size === file.size)
+            );
+            if (isDuplicate) {
+                setImageError(`Image already selected: ${file.name}. Skipping this file.`);
+                continue;
+            }
+
+            try {
+                // console.log(`Original file size: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
+                const compressedFile = await imageCompression(file, compressionOptions);
+                // console.log(`Compressed file size: ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`);
+
+                newImages.push({
+                    file: compressedFile, // Store the compressed file
+                    preview: URL.createObjectURL(compressedFile), // Create blob URL for preview
+                    status: 'new', // Mark as new
+                });
+            } catch (error) {
+                console.error('Compression failed for file:', file.name, error);
+                setImageError(`Could not process image: ${file.name}.`);
+            }
+        }
+
+        if (newImages.length > 0) {
+            setSelectedImages(prev => [...prev, ...newImages]);
+        }
+
+        e.target.value = null; // Reset file input
+    };
+
+    const handleRemoveImage = (indexToRemove) => {
+        setImageError('');
+        const imageToRemove = selectedImages[indexToRemove];
+
+        // If it was an existing image, add its key (URL) to the delete list
+        if (imageToRemove.status === 'existing') {
+            setImagesToDelete(prev => [...prev, imageToRemove.key]);
+        }
+
+        // If it's a blob preview, revoke it to free memory
+        if (imageToRemove.preview.startsWith('blob:')) {
+            URL.revokeObjectURL(imageToRemove.preview);
+        }
+
+        // Remove the image from the display list
+        setSelectedImages(prev => prev.filter((_, index) => index !== indexToRemove));
+    };
+
+    const handleCropSave = async (index, croppedImageBlob) => {
+        const imageToUpdate = selectedImages[index];
+
+        // If cropping an existing image, mark the original for deletion
+        if (imageToUpdate.status === 'existing') {
+            setImagesToDelete(prev => [...prev, imageToUpdate.key]);
+        }
+
+        // console.log(`Original cropped blob size: ${(croppedImageBlob.size / 1024 / 1024).toFixed(2)} MB`);
+
+        const compressionOptions = {
+            maxSizeMB: 1,
+            maxWidthOrHeight: 1920,
+            useWebWorker: true,
+            fileType: 'image/webp',
+        };
+
+        try {
+            const compressedBlob = await imageCompression(croppedImageBlob, compressionOptions);
+            // console.log(`Compressed blob size: ${(compressedBlob.size / 1024 / 1024).toFixed(2)} MB`);
+
+            const originalName = imageToUpdate.file ? imageToUpdate.file.name : 'cropped-image';
+            const fileName = originalName.split('.')[0] + '.webp';
+            const newFile = new File([compressedBlob], fileName, { type: 'image/webp' });
+            const newPreview = URL.createObjectURL(compressedBlob);
+
+            // Replace the old image data with the new cropped/compressed data
+            setSelectedImages(prev => {
+                const updatedImages = [...prev];
+                // Revoke old blob URL if it exists
+                if (updatedImages[index].preview.startsWith('blob:')) {
+                    URL.revokeObjectURL(updatedImages[index].preview);
+                }
+                // Update the item in the array
+                updatedImages[index] = { file: newFile, preview: newPreview, status: 'new' };
+                return updatedImages;
+            });
+
+        } catch (error) {
+            console.error('Image compression failed after crop:', error);
+            setImageError('Failed to save cropped image.');
+        }
+
+        setCroppingImage(null); // Close the cropper
+    };
+
+    /**
+     * --- NEW: Internal Submit Handler ---
+     * Gathers all data (text + images) and calls the parent's onSubmit.
+     */
+    const handleInternalSubmit = (e) => {
+        e.preventDefault();
+
+        // Prepare data for the parent onSubmit prop
+        const submissionData = {
+            name: data.name,
+            date: data.date,
+                customName: data.customName,
+            description: data.description,
+
+            // new uploaded files
+            newFiles: selectedImages
+                .filter((img) => img.status === "new")
+                .map((img) => img.file),
+
+            // keep existing images (must send url + key)
+            existingImages: selectedImages
+                .filter((img) => img.status === "existing")
+                .map((img) => ({
+                    url: img.url,      // signed url or normal url
+                    key: img.key,      // ✅ S3 key like: programs/xxxx.webp
+                })),
+
+            // delete keys only
+            imagesToDelete: imagesToDelete.filter(Boolean), // ✅ only keys
+        };
+
+
+        // Call the actual submit function passed from the parent
+        onSubmit(submissionData);
+    };
+
+    // Disable logic remains the same (uses parent's 'data' for text fields)
+    const isSubmitDisabled = selectedImages.length < 1 || selectedImages.length > 10 || !data.name || !data.date || !data.description;
+
+    return (
+        <>
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+                onClick={onClose} // Close if clicking outside
+            >
+                <motion.div
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: 20, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="bg-white rounded-2xl max-w-2xl w-full relative shadow-2xl flex flex-col max-h-[90vh]"
+                    onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
+                >
+                    {/* Header */}
+                    <div className="p-6 sm:p-8 border-b">
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-2xl font-bold text-slate-800">
+                                {mode === 'edit' ? 'Edit Program' : 'Add a New Program'}
+                            </h2>
+                            <button onClick={onClose} className="text-slate-500 hover:text-red-500"><X size={24} /></button>
+                        </div>
+                    </div>
+
+                    {/* Form Content */}
+                    <div className="p-6 sm:p-8 flex-grow overflow-y-auto">
+                        {/* --- Form now uses the internal submit handler --- */}
+                        <form id="program-form" onSubmit={handleInternalSubmit}>
+                            <div className="space-y-4">
+                                {/* Text Inputs (Controlled by PARENT state via props) */}
+<div>
+    <label className="block text-sm font-semibold text-slate-600 mb-1">
+        Program Name
+    </label>
+
+    {data.name === "__custom__" ? (
+        <input
+            type="text"
+            name="name"
+            value={data.customName || ""}
+            onChange={(e) =>
+                onFormChange({
+                    target: {
+                        name: "customName",
+                        value: e.target.value,
+                    },
+                })
+            }
+            placeholder="Enter new program name"
+            className="w-full p-2 border rounded-md"
+            autoFocus
+            required
+        />
+    ) : (
+        <select
+            name="name"
+            value={data.name}
+            onChange={onFormChange}
+            className="w-full p-2 border rounded-md"
+            required
+        >
+            <option value="">Select Program</option>
+
+            {programList.map((program) => (
+                <option
+                    key={program._id}
+                    value={program.title}
+                >
+                    {program.title}
+                </option>
+            ))}
+
+            <option value="__custom__">
+                Other 
+            </option>
+        </select>
+    )}
+</div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-600 mb-1">Date</label>
+                                    <input type="date" name="date" value={data.date} onChange={onFormChange} className="w-full p-2 border rounded-md" required />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-600 mb-1">Description</label>
+                                    <textarea name="description" value={data.description} onChange={onFormChange} rows="4" className="w-full p-2 border rounded-md" required></textarea>
+                                </div>
+
+                                {/* Image Uploader (Managed INTERNALLY by this modal) */}
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-600 mb-1">Images (1-10)</label>
+                                    <div className="flex items-center gap-4">
+                                        <label className="cursor-pointer flex items-center gap-2 text-sm bg-green-50 text-green-700 font-semibold px-4 py-2 rounded-lg hover:bg-green-100 transition">
+                                            <FileImage size={16} /> Choose Images
+                                            <input type="file" onChange={handleFileChange} multiple accept="image/*" className="hidden" />
+                                        </label>
+                                        <span className="text-sm text-slate-500">
+                                            {selectedImages.length} image(s) selected
+                                        </span>
+                                    </div>
+                                    {imageError && <p className="text-red-600 text-sm mt-2">{imageError}</p>}
+                                </div>
+
+                                {/* Image Previews (Uses INTERNAL selectedImages state) */}
+                                {selectedImages.length > 0 && (
+                                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 pt-4">
+                                        {selectedImages.map((image, index) => (
+                                            // Use preview URL for key if it's a new blob, otherwise use existing key (URL)
+                                            <div key={image.preview.startsWith('blob:') ? image.preview : image.key} className="relative group aspect-square">
+                                                <img
+                                                    src={image.preview} // Use blob URL or existing URL
+                                                    alt={`preview ${index}`}
+                                                    className="w-full h-full object-cover rounded-md"
+                                                />
+                                                <div className="absolute inset-0 bg-black/40  flex items-center justify-center gap-2  opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                                                    <button
+                                                        type="button"
+                                                        // Use blob URL or existing URL for cropper source
+                                                        onClick={() => setCroppingImage({ index, src: image.preview })}
+                                                        className="p-2 bg-white/80 rounded-full text-blue-600 hover:bg-white"
+                                                        title="Crop">
+                                                        <Crop size={16} />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleRemoveImage(index)}
+                                                        className="p-2 bg-white/80 rounded-full text-red-500 hover:bg-white"
+                                                        title="Remove">
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </form>
+                    </div>
+
+                    {/* Footer with Actions */}
+                    <div className="p-6 sm:p-8 border-t">
+                        <div className="flex justify-end gap-4">
+                            <button type="button" onClick={onClose} className="px-6 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200">Cancel</button>
+                            <button
+                                type="submit"
+                                form="program-form" // Triggers the form's onSubmit (handleInternalSubmit)
+                                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-slate-400 disabled:cursor-not-allowed"
+                                disabled={isSubmitDisabled}
+                            >
+                                {mode === 'edit' ? 'Update Program' : 'Submit Program'}
+                            </button>
+                        </div>
+                    </div>
+                </motion.div>
+            </motion.div>
+
+            {croppingImage && <ImageCropperModal src={croppingImage.src} onClose={() => setCroppingImage(null)} onSave={(blob) => handleCropSave(croppingImage.index, blob)} />}
+        </>
+    );
+};
+
+export default AddProgramModal;

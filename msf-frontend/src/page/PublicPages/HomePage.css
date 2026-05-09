@@ -1,0 +1,138 @@
+/* ---------- Base Styles (You already have) ---------- */
+.home {
+  margin-top: 90px;
+}
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #fffffff5;
+    font-family: 'Arial', sans-serif;
+}
+.about-section {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  text-align: center;
+  padding: 60px 20px;
+  color: green;
+}
+
+/* Blurred full-size background image */
+.about-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('../../assets/flag-bg.png') center center / contain no-repeat;
+  background-color: white; /* Fallback color for gaps */
+  opacity: 0.8;
+  z-index: -2;
+}
+
+/* Optional white overlay to improve text visibility */
+.about-section::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: rgba(255, 255, 255, 0.695);
+  z-index: -1;
+}
+
+
+
+.about-section h2 {
+  font-size: 5rem; /* desktop default */
+  margin-bottom: 20px;
+  font-family: "Italiana", sans-serif;
+  
+}
+
+.about-section .highlight {
+  font-weight: bold;
+  color: green;
+}
+
+.about-section p {
+  max-width: 800px;
+  margin: 0 auto;
+  font-size: 27px;
+  line-height: 1.6;
+  color: #333;
+  padding: 20px;
+  border-radius: 10px;
+   font-family: "Italiana", sans-serif;
+}
+
+.performers {
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.unit-grid {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.unit-card {
+  background: green;
+  color: white;
+  padding: 20px 30px;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 1.2rem;
+   font-family: "Italiana", sans-serif;
+}
+
+/* ---------- Responsive Breakpoints ---------- */
+
+/* Tablets (up to 768px) */
+@media (max-width: 768px) {
+  .about-section {
+    padding: 40px 15px;
+  }
+
+  .about-section h2 {
+    font-size: 2rem;
+  }
+
+  .about-section p {
+    font-size: 2rem;
+    padding: 16px;
+  }
+
+  .unit-card {
+    font-size: 1rem;
+    padding: 16px 20px;
+  }
+}
+
+/* Mobile (up to 480px) */
+@media (max-width: 480px) {
+  .home {
+    margin-top: 0px;
+  }
+
+  .about-section {
+    padding: 30px 10px;
+  }
+
+  .about-section h2 {
+    font-size: 3rem;
+  }
+
+  .about-section p {
+    font-size: 1.2rem;
+    padding: 5px;
+  }
+
+  .unit-card {
+    font-size: 0.95rem;
+    padding: 14px 16px;
+  }
+
+  .unit-grid {
+    flex-direction: column;
+    align-items: center;
+  }
+}
